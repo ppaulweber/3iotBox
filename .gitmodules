@@ -1,0 +1,3 @@
+[submodule "lib/pawn"]
+	path = lib/pawn
+	url = https://github.com/compuphase/pawn.git
