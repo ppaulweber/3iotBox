@@ -1,3 +1,6 @@
 [submodule "lib/pawn"]
 	path = lib/pawn
 	url = https://github.com/compuphase/pawn.git
+[submodule "lib/stdhl"]
+	path = lib/stdhl
+	url = https://github.com/ppaulweber/libstdhl.git
