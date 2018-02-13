@@ -1,0 +1,142 @@
+//
+//  Copyright (C) 2018 Philipp Paulweber, Simon Tragatschnig, and Patrick Gaubatz
+//  All rights reserved.
+//
+//  Developed by: Philipp Paulweber
+//                <https://github.com/ppaulweber/3iotBox>
+//
+//  This file is part of 3iotBox.
+//
+//  3iotBox is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+//
+//  3iotBox is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+//  GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License
+//  along with 3iotBox. If not, see <http://www.gnu.org/licenses/>.
+//
+
+//===========
+//Wireless Thermometer
+//===========
+//===
+//=== Settings
+//===
+<table>
+    //Configuration block 0 should be used
+    name  = config0                         
+    //Title of the config. section displayed on the server
+    title = Configuration               
+    <field>
+        //Parameter 0 should be used for the transmission interval
+        name       = field0             
+        //Alternative field name that can be used by the REST-API
+        alias      = RecordInterval     
+        //Title of the parameter displayed on the server
+        title      = Record Interval    
+        //Position in config block 0 where the parameter is saved
+        byteofs    = 0                  
+        //No decimal places
+        decpl      = 0                  
+        //Data type: 32Bit unsigned
+        type       = u32 
+        //Unit to be used to enter the value for the parameter               
+        units      = sec  
+        //Lowest valid value for the parameter            
+        min        = 10                  
+        //Default value is 60 sec.
+        default    = 60                      
+    </field>
+    <field>
+        //Parameter 1 should be used for the record interval
+        name       = field1            
+        alias      = TransmissionInterval
+        title      = Transmission Interval
+        byteofs    = 4                  
+        decpl      = 0
+        type       = u32
+        units      = min
+        min        = 10
+        default    = 60
+        //Conversion factor sec.->min. (sec. used internally)                 
+        vscale     = 0.01666666667      
+    </field>
+    <field>
+        //Parameter 2 should be used for the connection type
+        name       = field2             
+        alias      = TransmissionMode
+        title      = Transmission Mode
+        byteofs    = 8                  
+        decpl      = 0
+        type       = u8
+        default    = 0
+        //Selection options for the dropdown list
+        editmask   = 0=Intervall;1=Wakeup;2=Online 
+    </field>
+</table>
+
+//===
+//=== Measurement Channels
+//===
+<split>
+    //Raw data channel (always "rm2mraw" for the rapidM2M M3 ) from which the data records should be
+    //copied	
+    source = rm2mraw
+    //Measurement data channel to which the data record should be copied
+    target = histdata0
+    //If the first byte of the data record corresponds to this value, it is copied to the specified 
+    //measurement data channel.
+    key    = 00
+</split>
+
+<table>
+    //Measurement data channel 0 should be used.
+    name = histdata0
+    <field>
+        //Data field 0 should be used for the battery voltage.
+        name    = ch0
+        //Alternative field name that can be used by the REST-API
+        alias   = VoltageBattery
+        //Title of the data field displayed on the server
+        title   = Battery Voltage
+        //Position in measurement data channel 0 where the data field is saved
+        //Note: The key for the split tag is located at position "0"
+        byteofs = 1
+        //The measurement value should be rounded off to two decimal places.
+        decpl   = 2
+        //Data type: 16Bit signed
+        type    = s16
+        //Conversion factor mV->V (V is used internally)
+        vscale  = 0.001
+        //Measurement value unit displayed on the server
+        units   = V
+    </field>
+    <field>
+        //Data field 1 should be used for the USB charging voltage.
+        name    = ch1
+        alias   = VoltageUSB
+        title   = USB Voltage
+        byteofs = 3
+        decpl   = 2
+        type    = s16
+        vscale  = 0.001
+        units   = V
+    </field>
+    <field>
+        //Data field 2 should be used for the temperature.
+        name    = ch2
+        alias   = Temperature
+        title   = Temperature
+        byteofs = 5
+        decpl   = 1
+        type    = s16
+        vscale  = 0.1
+        units   = °C
+    </field>
+</table>
+
