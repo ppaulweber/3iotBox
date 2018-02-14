@@ -1,0 +1,26 @@
+{ "compilerOptions":
+  { "target":            "es5"
+  , "module":            "commonjs"
+  , "moduleResolution":  "node"
+  , "outDir":            "obj/node"
+  , "lib":
+    [ "es2016"
+    , "dom"
+    ]
+  , "sourceMap":         true
+  , "inlineSources":     false
+  , "declaration":       true
+  , "stripInternal":     true
+  , "strictNullChecks":  true
+  , "noImplicitAny":     true
+  , "noImplicitReturns": true
+  , "noImplicitThis":    true
+  , "noUnusedLocals":    true
+  }
+, "include":
+  [ "src/ts"
+  ]
+, "files":
+  [ "src/ts/3iotBox.ts"
+  ]
+}
