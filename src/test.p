@@ -199,6 +199,7 @@ static iTxTimer;
 
 forward public Handle_SMS( const SmsTel[], const SmsText[] );
 
+forward public Display_Task();
 
 main()
 {
@@ -253,10 +254,11 @@ main()
     rM2M_CfgOnChg( funcidx( "ReadConfig" ) );
     rM2M_SmsInit( funcidx( "Handle_SMS" ), 0 );
     rM2M_TimerAdd( funcidx( "Timer1s" ) );
+    rM2M_TimerAddExt( funcidx( "Display_Task" ), true, 25 );
 }
 
 
-static uptime = 0;
+static uptime = -2;
 
 public Timer1s()
 {
@@ -264,29 +266,24 @@ public Timer1s()
     Handle_Transmission();
     Handle_Record();
 
-    printf( "uptime %d, api %i, levelsignal strength %i, display is busy %i\r\n", uptime, getapilevel(), rM2M_GSMGetRSSI(), Display_IsBusy() );
-    
-    if( uptime == 1 )
+    printf( "api %i, levelsignal strength %i\r\n", getapilevel(), rM2M_GSMGetRSSI() );
+}
+
+public Display_Task()
+{    
+    if( uptime == -2 )
     {
 	Display_Powerup();
     }
-    if( uptime == 2 )
+    if( uptime == -1 )
     {
 	Display_Setup();
     }
-    if( uptime == 3 )
+    if( uptime >= 0 && uptime < 192 )
     {
     	Display_TestImage();
     }
-    if( uptime == 4 )
-    {
-    	Display_TestImage();
-    }
-    if( uptime == 5 )
-    {
-    	Display_TestImage();
-    }
-    if( uptime == 6 )
+    if( uptime == 192 )
     {
     	Display_Refresh();
     }

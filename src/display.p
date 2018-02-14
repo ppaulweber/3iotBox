@@ -190,13 +190,18 @@ public Display_Setup()
 
 public Display_TestImage()
 {
-    
-
     new index;
     /* for( index = 0; index < 30720; index++ ) */
     for( index = 0; index < EPD_WIDTH; index++ )
     {
-    	Display_SendData( 0x03 );
+	if( (index % 4) == (index % 2) )
+	{
+	    Display_SendData(  0x03 );
+	}
+	else
+	{
+	    Display_SendData(  0x30 );
+	}
     }
     // Display_Sync();
 }
