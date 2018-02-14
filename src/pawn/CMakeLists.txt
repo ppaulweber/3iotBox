@@ -21,4 +21,35 @@
 #   along with 3iotBox. If not, see <http://www.gnu.org/licenses/>.
 #
 
-add_subdirectory( pawn )
+set( PAWN_SRC
+  ${CMAKE_CURRENT_SOURCE_DIR}/test.p
+  ${CMAKE_CURRENT_SOURCE_DIR}/display.p
+  )
+
+set( PAWN_BIN
+  ${CMAKE_CURRENT_BINARY_DIR}/test.amx
+  )
+
+set( PAWN_OPT
+  -i${PROJECT_SOURCE_DIR}/lib/rM2M
+  -d3
+  )
+
+add_custom_command(
+  OUTPUT
+    ${PAWN_BIN}
+#  COMMAND echo ${PROJECT_SOURCE_DIR}/lib/pawn/obj/pawncc ${PAWN_SRC} -o${PAWN_BIN} ${PAWN_OPT}
+  COMMAND
+    ${PROJECT_SOURCE_DIR}/lib/pawn/obj/pawncc ${PAWN_SRC} -o${PAWN_BIN} ${PAWN_OPT}
+  WORKING_DIRECTORY
+    ${PROJECT_SOURCE_DIR}
+  DEPENDS
+    pawn
+    ${PAWN_SRC}
+  VERBATIM
+  )
+
+add_custom_target( ${PROJECT}-app
+  DEPENDS
+    ${PAWN_BIN}
+  )
