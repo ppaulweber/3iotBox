@@ -23,6 +23,7 @@
 
 set( PAWN_SRC
   ${CMAKE_CURRENT_SOURCE_DIR}/test.p
+  ${CMAKE_CURRENT_SOURCE_DIR}/display.p
   )
 
 set( PAWN_BIN
@@ -37,6 +38,7 @@ set( PAWN_OPT
 add_custom_command(
   OUTPUT
     ${PAWN_BIN}
+#  COMMAND echo ${PROJECT_SOURCE_DIR}/lib/pawn/obj/pawncc ${PAWN_SRC} -o${PAWN_BIN} ${PAWN_OPT}
   COMMAND
     ${PROJECT_SOURCE_DIR}/lib/pawn/obj/pawncc ${PAWN_SRC} -o${PAWN_BIN} ${PAWN_OPT}
   WORKING_DIRECTORY

@@ -21,15 +21,21 @@
 //  along with 3iotBox. If not, see <http://www.gnu.org/licenses/>.
 //
 
-// #pragma amxram 131072
-// #pragma dynamic  5120
+/* #pragma amxram 1310720 */
+/* #pragma dynamic  10000 */
 
 
 #include "filetransfer"
 #include "sdk/iotbox"
 #include "rM2M"
 
+#include "display"
+
+native getapilevel();
 native CRC32(data{}, len, initial=0);
+
+// native W5200_Socket(s, iProtocol, iPort, iFlag);
+
 
 forward public Timer1s();
 forward public ReadConfig(cfg);
@@ -49,186 +55,251 @@ static iRecTimer;
 static iTxTimer;
 
 
-forward public FileCmd( id, cmd, const data{}, len, ofs );
+/* forward public FileCmd( id, cmd, const data{}, len, ofs ); */
 
-static cFileId;
-static cFileLen;
-static cFileBufferTx{4096};
-static cUartLen;
+/* /\* static cFileId; *\/ */
+/* static cFileLen; */
+/* /\* static cFileBufferTx{4096}; *\/ */
+/* /\* static cUartLen; *\/ */
 
-static srM2MFile[ 3 ][ TFT_Info ] =
-    [ [ "rM2MFile_1"
-      , 0
-      , 0
-      , 0
-      , 0
-      , FT_FLAG_READ
-      ]
-    , [ "rM2MFile_2"
-      , 0
-      , 0
-      , 0
-      , 0
-      , FT_FLAG_WRITE
-      ]
-    , [ "rM2MFile_3"
-      , 0
-      , 0
-      , 0
-      , 0
-      , FT_FLAG_WRITE | FT_FLAG_READ
-      ]
-    ];
+/* static srM2MFile[ 3 ][ TFT_Info ] = */
+/*     [ [ "stdin" */
+/*       , 0 */
+/*       , 0 */
+/*       , 0 */
+/*       , 0 */
+/*       , FT_FLAG_READ */
+/*       ] */
+/*     , [ "stdout" */
+/*       , 0 */
+/*       , 0 */
+/*       , 0 */
+/*       , 0 */
+/*       , FT_FLAG_WRITE */
+/*       ] */
+/*     , [ "stderr" */
+/*       , 0 */
+/*       , 0 */
+/*       , 0 */
+/*       , 0 */
+/*       , FT_FLAG_WRITE */
+/*       ] */
+/*     ]; */
 
 
-static srM2MData[3]{10240} =
-    [
-	{},
-	{},
-	{}
-	];
+/* static srM2MData[3]{10240} = */
+/*     [ */
+/* 	{}, */
+/* 	{}, */
+/* 	{} */
+/* 	]; */
 
-static aFileCmd[]{} =
-    [
-	{"NONE"},
-	{"UNLOCK"},
-	{"LIST"},
-	{"READ"},
-	{"STORE"},
-	{"WRITE"},
-	{"DELETE"}
-	];
+/* static aFileCmd[]{} = */
+/*     [ */
+/* 	{"NONE"}, */
+/* 	{"UNLOCK"}, */
+/* 	{"LIST"}, */
+/* 	{"READ"}, */
+/* 	{"STORE"}, */
+/* 	{"WRITE"}, */
+/* 	{"DELETE"} */
+/* 	]; */
 
-public FileCmd( id, cmd, const data{}, len, ofs )
-{
-    new cFileBuffer{4096};
+
+/* public FileCmd( id, cmd, const data{}, len, ofs ) */
+/* { */
+/*     new cFileBuffer{4096}; */
  
-    printf( "FileCmd(%s, %s, data{}, %d Bytes, Offset %d)\r\n", srM2MFile[id].name, aFileCmd[cmd], len, ofs );
+/*     printf( "FileCmd(%s, %s, data{}, %d Bytes, Offset %d)\r\n", srM2MFile[id].name, aFileCmd[cmd], len, ofs ); */
 
-    switch( cmd )
-    {
-        case FT_CMD_NONE:
-	{
-	}
-        case FT_CMD_UNLOCK:
-        {
-	    if( srM2MFile[ id ].flags == FT_FLAG_READ )
-	    {
-		srM2MFile[ id ].size = 0;
-		srM2MFile[ id ].stamp = 0;
-	    }
-        }
-        case FT_CMD_LIST:
-        {
-            FT_SetProps
-            ( id
-            , srM2MFile[ id ].stamp
-            , srM2MFile[ id ].size
-            , CRC32
-              ( srM2MData[ id ]
-              , srM2MFile[ id ].size
-              )
-            , srM2MFile[ id ].flags
-            );
-        }
-        case FT_CMD_READ:
-        {
-            rM2M_GetPackedB
-            ( srM2MData[ id ]
-            , ofs
-            , cFileBuffer
-            , len
-            );
+/*     switch( cmd ) */
+/*     { */
+/*         case FT_CMD_NONE: */
+/* 	{ */
+/* 	} */
+/*         case FT_CMD_UNLOCK: */
+/*         { */
+/* 	    if( srM2MFile[ id ].flags == FT_FLAG_READ ) */
+/* 	    { */
+/* 		srM2MFile[ id ].size = 0; */
+/* 		srM2MFile[ id ].stamp = 0; */
+/* 	    } */
+/*         } */
+/*         case FT_CMD_LIST: */
+/*         { */
+/*             FT_SetProps */
+/*             ( id */
+/*             , srM2MFile[ id ].stamp */
+/*             , srM2MFile[ id ].size */
+/*             , CRC32 */
+/*               ( srM2MData[ id ] */
+/*               , srM2MFile[ id ].size */
+/*               ) */
+/*             , srM2MFile[ id ].flags */
+/*             ); */
+/*         } */
+/*         case FT_CMD_READ: */
+/*         { */
+/*             rM2M_GetPackedB */
+/*             ( srM2MData[ id ] */
+/*             , ofs */
+/*             , cFileBuffer */
+/*             , len */
+/*             ); */
 
-            FT_Read
-            ( id
-            , cFileBuffer
-            , cFileLen
-            );
+/*             FT_Read */
+/*             ( id */
+/*             , cFileBuffer */
+/*             , cFileLen */
+/*             ); */
 
-            //printf( "Read: %s\r\n", cFileBuffer );
-        }
-        case FT_CMD_STORE:
-        {
-	    FT_Accept( id );
-        }
-        case FT_CMD_WRITE:
-        {
-            if( ( ofs + len ) > 10240 )
-            {
-                FT_Error(id);
-                return;
-            }
+/*             //printf( "Read: %s\r\n", cFileBuffer ); */
+/*         } */
+/*         case FT_CMD_STORE: */
+/*         { */
+/* 	    FT_Accept( id ); */
+/*         } */
+/*         case FT_CMD_WRITE: */
+/*         { */
+/*             if( ( ofs + len ) > 10240 ) */
+/*             { */
+/*                 FT_Error(id); */
+/*                 return; */
+/*             } */
 
-            rM2M_SetPackedB
-            ( srM2MData[id]
-            , ofs
-            , data
-            , len
-            );
+/*             rM2M_SetPackedB */
+/*             ( srM2MData[id] */
+/*             , ofs */
+/*             , data */
+/*             , len */
+/*             ); */
 
-            rM2M_SetPackedB
-            ( cFileBuffer
-            , 0
-            , data
-            , len
-            );
+/*             rM2M_SetPackedB */
+/*             ( cFileBuffer */
+/*             , 0 */
+/*             , data */
+/*             , len */
+/*             ); */
 
-            srM2MFile[ id ].size = ofs + len;
-            /* cUartLen = len; */
-            /* cFileId = id; */
-            /* cFileLen = len; */
-            /* cFileBufferTx = cFileBuffer; */
+/*             srM2MFile[ id ].size = ofs + len; */
+/*             /\* cUartLen = len; *\/ */
+/*             /\* cFileId = id; *\/ */
+/*             /\* cFileLen = len; *\/ */
+/*             /\* cFileBufferTx = cFileBuffer; *\/ */
 
-            // printf( "Written: %s\r\n", cFileBuffer );
-        }
-        case FT_CMD_DELETE:
-        {
-	    FT_Unregister( id );
-        }
-    }
-}
+/*             // printf( "Written: %s\r\n", cFileBuffer ); */
+/*         } */
+/*         case FT_CMD_DELETE: */
+/*         { */
+/* 	    FT_Unregister( id ); */
+/*         } */
+/*     } */
+/* } */
+
+
+forward public Handle_SMS( const SmsTel[], const SmsText[] );
 
 
 main()
 {
     Led_Init( LED_MODE_SCRIPT );
     Switch_Init( SWITCH_MODE_SCRIPT, funcidx( "KeyChanged" ) );
-    rM2M_TimerAdd( funcidx( "Timer1s" ) );
-    rM2M_CfgOnChg( funcidx( "ReadConfig" ) );
+    Display_Init();
+
+    new timeHour;
+    new timeMinute;
+    new timeSecond;
+    new timeStamp;
+    timeStamp = rM2M_GetTime( timeHour, timeMinute, timeSecond );
+    printf( "time: %d:%d:%d | %d\r\n", timeHour, timeMinute, timeSecond, timeStamp );
+
+    
+    /* new i; */
+    /* for( i = 0; i < 3; i++ ) */
+    /* { */
+    /* 	FT_Register */
+    /*     ( srM2MFile[i].name */
+    /* 	, i */
+    /* 	, funcidx( "FileCmd" ) */
+    /* 	); */
+
+    /* 	FT_SetProps */
+    /* 	( i */
+    /* 	, srM2MFile[i].stamp */
+    /* 	, srM2MFile[i].size */
+    /* 	, srM2MFile[i].crc */
+    /* 	, srM2MFile[i].flags */
+    /* 	); */
+    /* } */
+    
+    /* rM2M_GpioDir( 0, RM2M_GPIO_OUTPUT ); */
+    /* rM2M_GpioSet( 0, 1 ); */
+    /* rM2M_GpioDir( 1, RM2M_GPIO_OUTPUT ); */
+    /* rM2M_GpioSet( 1, 0 ); */
+    /* rM2M_GpioDir( 2, RM2M_GPIO_OUTPUT ); */
+    /* rM2M_GpioSet( 2, 0 ); */
+    /* rM2M_GpioDir( 3, RM2M_GPIO_OUTPUT ); */
+    /* rM2M_GpioSet( 3, 0 ); */
+    /* rM2M_GpioDir( 4, RM2M_GPIO_OUTPUT ); */
+    /* rM2M_GpioSet( 4, 1 ); */
+    /* rM2M_GpioDir( 5, RM2M_GPIO_OUTPUT ); */
+    /* rM2M_GpioSet( 5, 0 ); */
 
     ReadConfig( CFG_BASIC_INDEX );
-    
+
     iTxTimer  = 0;
     iRecTimer = 0;
-
-    rM2M_TxSetMode(iTxMode);
-
-    new i;
-    for( i = 0; i < 3; i++ )
-    {
-	FT_Register
-        ( srM2MFile[i].name
-	, i
-	, funcidx( "FileCmd" )
-	);
-
-	FT_SetProps
-	( i
-	, srM2MFile[i].stamp
-	, srM2MFile[i].size
-	, srM2MFile[i].crc
-	, srM2MFile[i].flags
-	);
-    }
+    rM2M_TxSetMode( iTxMode );
+    rM2M_CfgOnChg( funcidx( "ReadConfig" ) );
+    rM2M_SmsInit( funcidx( "Handle_SMS" ), 0 );
+    rM2M_TimerAdd( funcidx( "Timer1s" ) );
 }
+
+
+static uptime = 0;
 
 public Timer1s()
 {
     Handle_Led();
     Handle_Transmission();
     Handle_Record();
+
+    printf( "uptime %d, api %i, levelsignal strength %i, display is busy %i\r\n", uptime, getapilevel(), rM2M_GSMGetRSSI(), Display_IsBusy() );
+    
+    if( uptime == 1 )
+    {
+	Display_Powerup();
+    }
+    if( uptime == 2 )
+    {
+	Display_Setup();
+    }
+    if( uptime == 3 )
+    {
+    	Display_TestImage();
+    }
+    if( uptime == 4 )
+    {
+    	Display_TestImage();
+    }
+    if( uptime == 5 )
+    {
+    	Display_TestImage();
+    }
+    if( uptime == 6 )
+    {
+    	Display_Refresh();
+    }
+    // Display_Sleep();
+
+    uptime = uptime + 1;
 }
+
+public Handle_SMS( const SmsTel[], const SmsText[] )
+{
+    printf( "received SMS from %s with text: %s\r\n", SmsTel, SmsText );    
+}
+
 
 const COLOR_RED     = 0x00ff0000;
 const COLOR_GREEN   = 0x0000ff00;
