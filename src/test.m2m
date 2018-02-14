@@ -97,45 +97,5 @@
         vscale  = 0.1
         units   = °C
     </field>
-    <field>
-        name    = ch3
-        alias   = Log0
-        title   = Log0
-        byteofs = 1
-        type    = string
-	max     = 128
-    </field>
-    <field>
-        name    = ch4
-        alias   = Log1
-        title   = Log1
-        byteofs = 1
-        type    = string
-	max     = 128
-    </field>
-    <field>
-        name    = ch5
-        alias   = Log2
-        title   = Log2
-        byteofs = 1
-        type    = string
-	max     = 128
-    </field>
-    <field>
-        name    = ch6
-        alias   = Log3
-        title   = Log3
-        byteofs = 1
-        type    = string
-	max     = 128
-    </field>
-    <field>
-        name    = ch7
-        alias   = Log4
-        title   = Log4
-        byteofs = 1
-        type    = string
-	max     = 128
-    </field>
 </table>
 

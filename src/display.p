@@ -194,7 +194,7 @@ public Display_TestImage()
     /* for( index = 0; index < 30720; index++ ) */
     for( index = 0; index < EPD_WIDTH; index++ )
     {
-	if( (index % 4) == (index % 2) )
+	if( (index % 5) == (index % 3) )
 	{
 	    Display_SendData(  0x03 );
 	}

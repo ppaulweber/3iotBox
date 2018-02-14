@@ -254,7 +254,7 @@ main()
     rM2M_CfgOnChg( funcidx( "ReadConfig" ) );
     rM2M_SmsInit( funcidx( "Handle_SMS" ), 0 );
     rM2M_TimerAdd( funcidx( "Timer1s" ) );
-    rM2M_TimerAddExt( funcidx( "Display_Task" ), true, 25 );
+    rM2M_TimerAddExt( funcidx( "Display_Task" ), true, 10 );
 }
 
 
