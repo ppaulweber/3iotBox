@@ -29,3 +29,15 @@ UPDATE_FILE  = .cmake/LibPackage.cmake
 UPDATE_FILE += .cmake/config.mk
 
 include .cmake/config.mk
+
+package.json:
+	npm install
+
+service: package.json
+	npm run deploy
+
+service-run:
+	npm run service
+
+service-run-standalone:
+	npm run service-standalone
