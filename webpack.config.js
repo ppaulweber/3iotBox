@@ -41,7 +41,7 @@ module.exports =
   { fs: 'empty'
   , child_process: 'empty'
   , net: 'empty'
-  , crypto: 'empty'
+  , tls: 'empty'
   }
 , plugins:
   []

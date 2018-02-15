@@ -22,5 +22,6 @@
   ]
 , "files":
   [ "src/ts/3iotBox.ts"
+  , "src/ts/service.ts"
   ]
 }

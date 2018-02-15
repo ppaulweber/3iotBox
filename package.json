@@ -4,7 +4,7 @@
   "description": "3IoT Complete Box",
   "author": "Philipp Paulweber (https://TODO)",
   "publisher": "Unpublished",
-  "version": "0.0.1",
+  "version": "0.0.0",
   "license": "GPL-3.0",
   "repository": {
     "type": "git",
@@ -17,26 +17,30 @@
   "typings": "./obj/node/3iotBox",
   "devDependencies": {
     "@types/node": "^7.0.52",
-    "@types/ws": "^0.0.39",
-    "copy-webpack-plugin": "^4.3.1",
-    "rimraf": "^2.6.1",
+    "@types/jquery": "",
     "typescript": "^2.6.2",
+    "rimraf": "^2.6.1",
     "webpack": "^2.3.3",
-    "webpack-uglify-js-plugin": "^1.1.9"
+    "webpack-uglify-js-plugin": "^1.1.9",
+    "copy-webpack-plugin": "^4.3.1"
   },
   "dependencies": {
     "bootstrap": "^3.3.7",
     "command-line-args": "^4.0.5",
     "express": "^4.15.2",
     "jquery": "^3.3.1",
-    "reconnecting-websocket": "^3.0.3",
-    "ws": "^2.2.3"
+    "bs58": "^1.0.1",
+    "get-pixels": "^3.3.0",
+    "pdf-to-png": "^1.0.3",
+    "@pgaubatz/uuid": "",
+    "node-rest-client": "^3.1.0"
   },
   "scripts": {
     "build": "./node_modules/.bin/tsc",
     "deploy": "npm run build && ./node_modules/.bin/webpack",
     "clean": "./node_modules/.bin/rimraf ./obj/node",
     "clean-all": "npm run clean && ./node_modules/.bin/rimraf ./node_modules",
-    "service": "npm run deploy && node src/js/3iotBox.js"
+    "service": "npm run deploy && node ./obj/node/service.js",
+    "service-standalone": "npm run deploy && node ./obj/node/service.js -s"
   }
 }

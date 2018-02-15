@@ -21,14 +21,55 @@
 //  along with 3iotBox. If not, see <http://www.gnu.org/licenses/>.
 //
 
-window.onload = () =>
+if( typeof window === 'undefined' )
 {
-    const w = <any>window;
-    console.log( w );
-    
-    const jQuery = require( 'jquery' );
-    jQuery( "#3iotBox" ).append( '<div>3iotBox</div>' );
-};
+    console.log( 'script not running in `browser`' );
+    process.exit();
+}
+
+import * as $ from 'jquery'
+
+
+//window.onload = () =>
+//{
+
+const w = <any>window;
+console.log( w );
+
+$.support.cors = true;
+
+$( "#3iotBox" ).append( '<div>3iotBox</div>' );
+$( "#3iotBox" ).append( '<div id="3iotBox-png"></div>' );
+$( "#3iotBox" ).append( '<div id="3iotBox-pdf"></div>' );
+$( "#3iotBox" ).append( '<div id="3iotBox-json"></div>' );
+
+$.ajax
+( { url: 'https://demo.obono.at/api/v1/export/pdf/belege/NBjmYNKsPLahmXa5edjfje'
+  , type: 'GET'
+  , beforeSend: ( xhr : any ) =>
+    { 
+        xhr.setRequestHeader( 'Accept', 'application/pdf' );
+    }
+  , xhrFields:
+    {
+        responseType: 'blob'
+    }
+  }
+).then
+( ( data : any, status : any, jqxhr : any ) =>
+  {
+      var url = w.URL || w.webkitURL;
+      var file = url.createObjectURL( data );
+      console.log( file )
+      $( "#3iotBox-pdf" ).append( '<embed src="' + file + '" type="application/pdf" />' );
+  }
+, ( jqxhr : any, status : any, error : any ) =>
+  {
+      console.log( jqxhr );
+      console.log( status );
+      console.log( error );
+  }
+);
 
 //
 //  Local variables:
