@@ -16,24 +16,24 @@
   "main": "./obj/node/3iotBox.js",
   "typings": "./obj/node/3iotBox",
   "devDependencies": {
-    "@types/node": "^7.0.52",
     "@types/jquery": "",
-    "typescript": "^2.6.2",
+    "@types/node": "^7.0.52",
+    "copy-webpack-plugin": "^4.3.1",
     "rimraf": "^2.6.1",
+    "typescript": "^2.7.2",
     "webpack": "^2.3.3",
-    "webpack-uglify-js-plugin": "^1.1.9",
-    "copy-webpack-plugin": "^4.3.1"
+    "webpack-uglify-js-plugin": "^1.1.9"
   },
   "dependencies": {
+    "@pgaubatz/uuid": "",
     "bootstrap": "^3.3.7",
+    "bs58": "^1.0.1",
     "command-line-args": "^4.0.5",
     "express": "^4.15.2",
-    "jquery": "^3.3.1",
-    "bs58": "^1.0.1",
     "get-pixels": "^3.3.0",
-    "pdf-to-png": "^1.0.3",
-    "@pgaubatz/uuid": "",
-    "node-rest-client": "^3.1.0"
+    "jquery": "^3.3.1",
+    "node-rest-client": "^3.1.0",
+    "pdfjs-dist": "^2.0.376"
   },
   "scripts": {
     "build": "./node_modules/.bin/tsc",
