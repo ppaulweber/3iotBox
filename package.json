@@ -13,12 +13,13 @@
   "bugs": {
     "url": "https://github.com/ppaulweber/3iotBox"
   },
-  "main": "./obj/node/3iotBox.js",
-  "typings": "./obj/node/3iotBox",
+  "main": "./obj/src/ts/3iotBox.js",
+  "typings": "./obj/src/ts/3iotBox",
   "devDependencies": {
-    "@types/jquery": "",
+    "@types/jquery": "^3.3.0",
     "@types/node": "^7.0.52",
     "copy-webpack-plugin": "^4.3.1",
+    "jquery": "^3.3.1",
     "rimraf": "^2.6.1",
     "typescript": "^2.7.2",
     "webpack": "^2.3.3",
@@ -31,16 +32,16 @@
     "command-line-args": "^4.0.5",
     "express": "^4.15.2",
     "get-pixels": "^3.3.0",
-    "jquery": "^3.3.1",
+    "jimp": "^0.2.28",
     "node-rest-client": "^3.1.0",
-    "pdfjs-dist": "^2.0.376"
+    "webshot": "^0.18.0"
   },
   "scripts": {
     "build": "./node_modules/.bin/tsc",
     "deploy": "npm run build && ./node_modules/.bin/webpack",
-    "clean": "./node_modules/.bin/rimraf ./obj/node",
+    "clean": "./node_modules/.bin/rimraf ./obj/src/ts",
     "clean-all": "npm run clean && ./node_modules/.bin/rimraf ./node_modules",
-    "service": "npm run deploy && node ./obj/node/service.js",
-    "service-standalone": "npm run deploy && node ./obj/node/service.js -s"
+    "service": "npm run deploy && node ./obj/src/ts/service.js",
+    "service-standalone": "npm run deploy && node ./obj/src/ts/service.js -s"
   }
 }
