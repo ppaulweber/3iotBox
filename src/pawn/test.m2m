@@ -23,7 +23,7 @@
 
 <table>
     name  = config0
-    title = Configuration (Konfiguration)
+    title = Electronic Receipt (Elektronischer Beleg) [https://obono.at] (Configuration)
     <field>
         name       = field0
         alias      = RecordInterval
@@ -64,11 +64,11 @@
     title = Electronic Receipt (Elektronischer Beleg) [https://obono.at] (Client Input --> 3IoT Server --> 3iotBox Service)
     <field>
         name       = field0
-        alias      = uid
-        title      = Receipt (Beleg) UID
+        alias      = uuid
+        title      = Receipt (Beleg) UUID
         type       = string
         byteofs    = 0
-        max        = 48
+        max        = 64
         default    = NBjmYNKsPLahmXa5edjfje
 	edit       = 1
     </field>
@@ -77,9 +77,19 @@
         alias      = url
         title      = Receipt (Beleg) URL
         type       = string
-        byteofs    = 48
-        max        = 48
+        byteofs    = 64
+        max        = 64
         default    = https://demo.obono.at
+	edit       = 2
+    </field>
+    <field>
+        name       = field2
+        alias      = api
+        title      = Receipt (Beleg) API
+        type       = string
+        byteofs    = 128
+        max        = 64
+        default    = /api/v1
 	edit       = 2
     </field>
 </table>
@@ -89,33 +99,53 @@
     title = Electronic Receipt (Elektronischer Beleg) [https://obono.at] (3iotBox Service --> 3IoT Server --> 3IoT Device)
     <field>
         name       = field0
-        alias      = data
-        title      = Receipt (Beleg) Data [json]
+        alias      = uuid
+        title      = Receipt (Beleg) UUID
         type       = string
         byteofs    = 0
-        max        = 4000
+        max        = 48
         default    = 
-	edit       = 3
+	edit       = 5
     </field>
     <field>
         name       = field1
-        alias      = image
-        title      = Receipt (Beleg) Image [blob]
+        alias      = sync
+        title      = Receipt (Beleg) Stamp
+        type       = string
+        byteofs    = 48
+        max        = 16
+        default    = 
+	edit       = 5
+    </field>
+    <field>
+        name       = field2
+        alias      = data
+        title      = Receipt (Beleg) Data
+        type       = string
+        byteofs    = 64
+        max        = 3936
+        default    = 
+	edit       = 5
+    </field>
+    <field>
+        name       = field3
+        alias      = qrcode
+        title      = Receipt (Beleg) QR-Code
         type       = string
         byteofs    = 4000
         max        = 4000
         default    = 
-	edit       = 3
+	edit       = 5
     </field>
     <field>
-        name       = field2
-        alias      = qrcode
-        title      = Receipt (Beleg) QR-Code [blob]
+        name       = field4
+        alias      = image
+        title      = Receipt (Beleg) Image
         type       = string
         byteofs    = 8000
-        max        = 4000
+        max        = 8000
         default    = 
-	edit       = 3
+	edit       = 5
     </field>
 </table>
 
@@ -158,3 +188,4 @@
         units   = °C
     </field>
 </table>
+
