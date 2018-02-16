@@ -33,11 +33,9 @@ let EXPRESS = require( 'express' );
 let REST = require( 'node-rest-client' ).Client;
 let BASE58 = require( 'bs58' );
 let UUID = require( '@pgaubatz/uuid' );
-
-let UTIL = require( 'util' );
-let GETPIXELS = require( 'get-pixels' );
-// var JIMP = require("jimp");
-
+let GET_PIXELS = require( 'get-pixels' );
+let WEBSHOT = require( 'webshot' );
+let JIMP = require('jimp');
 
 let argsDefinition =
 [ { name:         'port'
@@ -108,6 +106,53 @@ let rest = new REST();
 
 //
 //
+// QRC
+//
+
+let QRC_URL = 'https://api.qrserver.com';
+let QRC_API = '/v1';
+
+type QRC_Callback = ( data : any ) => any;
+
+function QRC_getPNG
+( data : string
+, size : number = 150
+, success : QRC_Callback = QRC_Callback => {}
+, failure : QRC_Callback = QRC_Callback => {}
+, url : string = QRC_URL
+, api : string = QRC_API
+)
+{
+    let endpoint = '/create-qr-code/?size=' + size + 'x' + size + '&data=' + encodeURIComponent( data );
+    let request = url + api + endpoint;
+    var communication = rest.get
+    ( request
+    , { headers:
+        { 'Content-Type': 'image/png'
+        }
+      }
+    , ( data : any, response : any ) =>
+      {
+          // data is already PNG blob 
+          console.log( __filename + ': ' + request + '\n' + 'PNG' );
+          success( data );
+      }
+    );
+
+    communication.on
+    ( 'error'
+    , ( error : any ) =>
+      {
+          let message = 'request error: ' + error;
+          console.log( __filename + ': ' + message );
+          failure( message );
+      }
+    );
+}
+
+
+//
+//
 // OFS
 //
 
@@ -117,11 +162,11 @@ let OFS_API = '/api/v1'
 type OFS_Configuration = any;
 type OFS_Callback = ( data : any ) => any;
 
-function OFS_getReceipt
+function OFS_getReceiptAsJSON
 ( configuration: OFS_Configuration
 , receiptId : string
 , success : OFS_Callback = OFS_Callback => {}
-, failed : OFS_Callback = OFS_Callback => {}
+, failure : OFS_Callback = OFS_Callback => {}
 , url : string = OFS_URL
 , api : string = OFS_API
 )
@@ -131,13 +176,80 @@ function OFS_getReceipt
     var communication = rest.get
     ( request
     , { headers:
-        { "Accept": "application/json"
+        { 'Accept': 'application/json'
         }
       }
     , ( data : any, response : any ) =>
       {
-          // data is already object
-          console.log( __filename + ": " + request + "\n" + JSON.stringify( data ) );
+          // data is JS object, parsed from JSON string
+          console.log( __filename + ': ' + request + '\n' + JSON.stringify( data ) );
+
+          if( data.status == "error" )
+          {
+              failure( data.message );
+          }
+          else
+          {
+              success( data );
+          }
+      }
+    );
+
+    communication.on
+    ( 'error'
+    , ( error : any ) =>
+      {
+          let message = 'request error: ' + error;
+          console.log( __filename + ': ' + message );
+          failure( message );
+      }
+    );
+}
+
+function OFS_getReceiptLinkAsQrCodePNG
+( configuration: OFS_Configuration
+, receiptId : string
+, size : number
+, success : OFS_Callback = OFS_Callback => {}
+, failure : OFS_Callback = OFS_Callback => {}
+, url : string = OFS_URL
+, api : string = OFS_API
+)
+{
+    QRC_getPNG
+    ( 'https://demo.obono.at/beleg/' + receiptId
+    , size
+    , ( data : any ) =>
+      {
+          // data is blob, create PNG binary buffer
+          let png = new Buffer( data, 'binary' );
+          success( png );
+      }
+    , failure
+    );
+}
+
+function OFS_getReceiptAsHTML
+( configuration: OFS_Configuration
+, receiptId : string
+, success : OFS_Callback = OFS_Callback => {}
+, failure : OFS_Callback = OFS_Callback => {}
+, url : string = OFS_URL
+, api : string = OFS_API
+)
+{
+    let endpoint = '/export/html/belege/' + receiptId;
+    let request = url + api + endpoint;
+    var communication = rest.get
+    ( request
+    , { headers:
+        { 'Accept': 'text/html'
+        }
+      }
+    , ( data : any, response : any ) =>
+      {
+          // data is HTML text
+          console.log( __filename + ': ' + request + '\n' + 'HTML' );
           success( data );
       }
     );
@@ -146,14 +258,12 @@ function OFS_getReceipt
     ( 'error'
     , ( error : any ) =>
       {
-          console.log( __filename + ": request error: " + error );
-          failed( { err : error } );
+          let message = 'request error: ' + error;
+          console.log( __filename + ': ' + message );
+          failure( message );
       }
     );
 }
-
-// OFS get receipt PDF 
-// curl -X GET --header 'Accept: application/pdf' 'https://demo.obono.at/api/v1/export/pdf/belege/UUID'
 
 
 //
@@ -171,30 +281,33 @@ function IOT_getConfig
 ( configuration: IOT_Configuration
 , id : number
 , success : IOT_Callback = IOT_Callback => {}
-, failed : IOT_Callback = IOT_Callback => {}
+, failure : IOT_Callback = IOT_Callback => {}
 , url : string = IOT_URL
 , api : string = IOT_API
 )
 {
-    let endpoint = '/customers/' + configuration.customerId + '/sites/' + configuration.deviceSiteId + '/config' + id;
+    let endpoint
+        = '/customers/' + configuration.customerId
+        + '/sites/' + configuration.deviceSiteId
+        + '/config' + id;
     let request = url + api + endpoint;
     var communication = rest.get
     ( request
     , { headers:
-        { "Authorization": "Basic " + Buffer.from(configuration.username + ":" + configuration.password).toString('base64')
-        , "Content-Type": "application/json"
+        { 'Authorization': 'Basic ' + Buffer.from(configuration.username + ':' + configuration.password).toString('base64')
+        , 'Content-Type': 'application/json'
         }
       }
     , ( data : any, response : any ) =>
       {
-          console.log( __filename + ": " + request + "\n" + data );
-          
-          // data is JSON string, parse to object
+          console.log( __filename + ': ' + request + '\n' + data );
+
+          // data is JSON string, parse to JS object
           let obj = JSON.parse( data ); // TODO: PPA: check for JSON parse errors
 
           if( obj.err )
           {
-              failed( obj );
+              failure( obj );
           }
           else
           {
@@ -207,45 +320,38 @@ function IOT_getConfig
     ( 'error'
     , ( error : any ) =>
       {
-          console.log( __filename + ": request error: " + error );
-          failed( { err : error } );
+          console.log( __filename + ': request error: ' + error );
+          failure( { err : error } );
       }
     );
 }
 
-//
-//
-// QRC
-//
-
-let QRC_URL = 'https://api.qrserver.com';
-let QRC_API = '/v1';
-
-type QRC_Configuration = any;
-type QRC_Callback = ( data : any ) => any;
-
-function QRC_getPNG
-( configuration: QRC_Configuration
-, data : string
-, size : number = 150
-, success : QRC_Callback = QRC_Callback => {}
-, failed : QRC_Callback = QRC_Callback => {}
-, url : string = QRC_URL
-, api : string = QRC_API
+function IOT_setConfig
+( configuration: IOT_Configuration
+, id : number
+, data : object
+, success : IOT_Callback = IOT_Callback => {}
+, failure : IOT_Callback = IOT_Callback => {}
+, url : string = IOT_URL
+, api : string = IOT_API
 )
 {
-    let endpoint = '/create-qr-code/?size=' + size + 'x' + size + '&data=' + encodeURIComponent( data );
+    let endpoint
+        = '/customers/' + configuration.customerId
+        + '/sites/' + configuration.deviceSiteId
+        + '/config' + id;
     let request = url + api + endpoint;
-    var communication = rest.get
+    var communication = rest.put
     ( request
     , { headers:
-        { "Content-Type": "image/png"
+        { 'Authorization': 'Basic ' + Buffer.from(configuration.username + ':' + configuration.password).toString('base64')
+        , 'Content-Type': 'application/json'
         }
+      , data : data
       }
     , ( data : any, response : any ) =>
       {
-          // data is already PNG blob 
-          console.log( __filename + ": " + request + "\n" + "PNG" );
+          console.log( __filename + ': ' + request + '\n' + data );
           success( data );
       }
     );
@@ -254,8 +360,8 @@ function QRC_getPNG
     ( 'error'
     , ( error : any ) =>
       {
-          console.log( __filename + ": request error: " + error );
-          failed( { err : error } );
+          console.log( __filename + ': request error: ' + error );
+          failure( { err : error } );
       }
     );
 }
@@ -278,18 +384,8 @@ function IOT_error( data : any )
     kernelStep();
 }
 
-function QRC_error( data : any )
-{
-    console.log( data.err );
-    kernelStep();
-}
-
-var uptime = 0;
 function kernelTask()
 {
-    console.log( __filename + ': uptime: ' + uptime );
-    uptime++;
-
     IOT_getConfig
     ( configuration.IOT
     , 0
@@ -298,124 +394,261 @@ function kernelTask()
     );
 }
 
-
 function getClientInput()
 {
     IOT_getConfig
     ( configuration.IOT
     , 1
-    , ( data : any ) => getReceipt( data.uid, data.url )
+    , processReceipt
     , IOT_error
     );    
 }
 
-function getReceipt( uuid : string, url : string )
+let currentReceipt : any = null;
+
+function processReceipt( receipt : any )
 {
-    OFS_getReceipt
+    let uuid = receipt.uuid;
+    
+    if( currentReceipt && currentReceipt.uuid == uuid )
+    {
+        // already updated the IoT receipt information
+        kernelStep();
+        return;
+    }
+
+    OFS_getReceiptAsJSON
     ( configuration.OFS
     , uuid
     , ( data : any ) =>
       {
+          let receiptAsJSON = data;
           // uuid is a valid OFS receipt in the current configuration
-          let uuid_b58 = BASE58.encode( UUID.parse( data._uuid ) );
-          if( uuid != uuid_b58 && uuid != data._uuid )
+          let uuid_b58 = BASE58.encode( UUID.parse( receiptAsJSON._uuid ) );
+          if( uuid != uuid_b58 && uuid != receiptAsJSON._uuid )
           {
               let message = 'inconsistent UUID values found: ' + uuid + ' != ' + uuid_b58;
               console.log( __filename + ': ' + message );
-              OFS_error( { err : message } );
+              OFS_error( message );
               return;
           }
 
-          // TODO: write JSON data to IOT server
-          getQrCodePNG( 'https://demo.obono.at/beleg/' + uuid );
+          OFS_getReceiptLinkAsQrCodePNG
+          ( configuration.OFS
+          , uuid
+          , 60
+          , ( png : any ) =>
+            {
+                GET_PIXELS
+                ( png
+                , 'image/png'
+                , ( error : any, pixels : any ) =>
+                  {
+                      if( error )
+                      {
+                          OFS_error( 'png2pixels: ' + error );
+                          return;
+                      }
+                      
+                      let receiptAsQrCodeStream = pixels2Stream( pixels, 2, 96, 160, true );
+
+                      OFS_getReceiptAsHTML
+                      ( configuration.OFS
+                      , uuid
+                      , ( html : any ) =>
+                        {
+                            var renderStream = WEBSHOT
+                            ( html
+                            , { siteType: 'html'
+                              , screenSize:
+                                { width: 322
+                                }
+                              , quality: 100
+                              }
+                            );
+
+                            let fileName = 'obj/beleg.png';
+                            var file = FS.createWriteStream( fileName, { encoding: 'binary' } );
+                            
+                            renderStream.on
+                            ( 'data'
+                            , ( data : any ) =>
+                              {
+                                  file.write( data.toString( 'binary' ), 'binary' );
+                              }
+                            );
+                            
+                            renderStream.on
+                            ( 'end'
+                            , () =>
+                              {
+                                  JIMP.read
+                                  ( fileName
+                                  , ( error : any, image : any ) =>
+                                    {
+                                        if( error )
+                                        {
+                                            OFS_error( error );
+                                            return;
+                                        }
+                                        
+                                        image.crop
+                                        ( 20, 10, image.bitmap.width - 40, image.bitmap.height - 300
+                                        ).posterize
+                                        ( 4
+                                        ).greyscale(
+                                        ).write
+                                        ( fileName + '.jimp.png'
+                                        , () =>
+                                          {
+                                              GET_PIXELS
+                                              ( fileName + '.jimp.png'
+                                              , ( error : any, pixels : any ) =>
+                                                {
+                                                    if( error )
+                                                    {
+                                                        OFS_error( 'png2pixels: ' + error );
+                                                        return;
+                                                    }
+                                              
+                                                    let receiptAsImageStream = pixels2Stream( pixels, 1, 64, 128 );
+                                                    // console.log( receiptAsImageStream );
+
+                                                    let receiptObject =
+                                                    { sync: receipt.stamp
+                                                    , uuid: receipt.uuid
+                                                    , data: JSON.stringify( receiptAsJSON )
+                                                    , image: receiptAsImageStream
+                                                    , qrcode: receiptAsQrCodeStream
+                                                    };
+                                                    
+                                                    IOT_setConfig
+                                                    ( configuration.IOT
+                                                    , 2
+                                                    , receiptObject
+                                                    , ( data : any ) =>
+                                                      {
+                                                          IOT_getConfig
+                                                          ( configuration.IOT
+                                                          , 2
+                                                          );
+
+                                                          currentReceipt = receiptObject;
+                                                          kernelStep();
+                                                      }
+                                                      , IOT_error
+                                                    );
+                                                }
+                                              );
+                                          }
+                                        );
+                                    }
+                                  );
+                              }
+                            );
+                        }
+                      , OFS_error
+                      );
+                  }
+                );
+            }
+            , OFS_error
+          );
       }
       , OFS_error
-      , url
+      , receipt.url
+      , receipt.api
     );
 }
 
-function getQrCodePNG( data : string )
+function pixels2Stream( pixels : any, increment : number = 1, bg : number = 70, gw : number = 140, debug : boolean = false ) : string
 {
-    QRC_getPNG
-    ( configuration.QRC
-    , data
-    , 60
-    , ( data : any ) =>
-      {
-          let pngBuffer = new Buffer( data, 'binary' );
-
-          GETPIXELS
-          ( pngBuffer, 'image/png'
-          , ( err : any, pixels : any ) =>
+    var pixelStream = '';
+    for( var x = 0; x < pixels.shape[0]; x += increment )
+    {
+        for( var y = 0; y < pixels.shape[1]; y += increment )
+        {
+            let pixel = ( pixels.get( y, x, 0 ) + pixels.get( y, x, 1 ) + pixels.get( y, x, 2 ) + pixels.get( y, x, 3 ) ) / 4;
+            if( pixel > gw )
             {
-                if( err )
-                {
-                    QRC_error( { err : 'unable to parse PNG blob data' } );
-                    return;
-                }
-                var qrCodeStream = "";
-                for( var x = 0; x < pixels.shape[0]; x += 2 )
-                {
-                    for( var y = 0; y < pixels.shape[1]; y += 2 )
-                    {
-                        let pixel = pixels.get( y, x, 2 );
-                        if( pixel > 128 )
-                        {
-                            qrCodeStream += '0';
-                        }
-                        else
-                        {
-                            qrCodeStream += '1';
-                        }
-                    }
-                    qrCodeStream += '0\n';
-                }
-                for( var x = 0; x < pixels.shape[0]; x+=2 )
-                {
-                    qrCodeStream += '0';
-                }
-                qrCodeStream += '0';
-                qrCodeStream = qrCodeStream.length + '\n' + qrCodeStream;
-                
-                var qrCodeStreamDebug = "";
-                var first = true;
-                for( let c of qrCodeStream )
-                {
-                    if( first )
-                    {
-                        if( c == '\n' )
-                        {
-                            first = false;
-                        }
-                        continue;
-                    }
-                    
-                    if( c == '0' )
-                    {
-                        qrCodeStreamDebug += '\u2588\u2588';
-                    }
-                    else if( c == '1' )
-                    {
-                        qrCodeStreamDebug += '  ';
-                    }
-                    else
-                    {
-                        qrCodeStreamDebug += c;
-                    }
-                }
-                
-                console.log( qrCodeStreamDebug );
-                // console.log( qrCodeStream );
+                pixelStream += 'w';
             }
-          );
-          
-          // JIMP.read( buffer, function( err, image ) {
-          // });
-      }
-    , QRC_error
-    );
-}
+            else if( pixel >= bg && pixel < gw )
+            {
+                pixelStream += 'g';
+            }
+            else
+            {
+                pixelStream += 'b';
+            }
+        }
+        pixelStream += 'w;';
+    }
+    if( increment > 1 )
+    {
+        for( var x = 0; x < pixels.shape[0]; x += increment )
+        {
+            pixelStream += 'w';
+        }
+        pixelStream += 'w';
+    }
     
+    var pixelStreamDebug = '';
+    for( let c of pixelStream )
+    {
+        if( c == 'w' )
+        {
+            pixelStreamDebug += '\u2588\u2588';
+        }
+        else if( c == 'g' )
+        {
+            pixelStreamDebug += '\u001b[30;1m\u2588\u2588\u001b[0m';
+        }
+        else if( c == 'b' )
+        {
+            pixelStreamDebug += '  ';
+        }
+        else if( c == ';' )
+        {
+            pixelStreamDebug += '\n';
+        }
+        else
+        {
+            pixelStreamDebug += c;
+        }
+    }
+
+    if( debug )
+    {
+        console.log( pixelStreamDebug );
+    }
+
+    var pixelStreamCompressed = '';
+    var pixelPrevious = '';
+    var pixelCounter = 0;
+    for( let c of pixelStream )
+    {
+        if( c == ';' )
+        {
+            continue;
+        }
+        if( c != pixelPrevious )
+        {
+            if( pixelCounter > 0 )
+            {
+                pixelStreamCompressed += pixelCounter;
+                pixelStreamCompressed += pixelPrevious;
+            }
+            pixelCounter = 1;
+            pixelPrevious = c;
+            continue;
+        }
+        pixelCounter++;
+    }
+    
+    return pixelStreamCompressed;
+}
+
 kernelStep();
 
 //

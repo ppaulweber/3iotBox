@@ -24,12 +24,12 @@
 const path = require( 'path' );
 const WebpackCopyPlugin = require( 'copy-webpack-plugin' );
 const WebpackUglifyJsPlugin = require('webpack-uglify-js-plugin');
-const buildRoot = path.resolve( __dirname, 'obj', 'node' );
+const buildRoot = path.resolve( __dirname, 'obj', 'src', 'ts' );
 
 module.exports =
 { entry:
-  { '3iotBox.min' : path.resolve( buildRoot, '3iotBox.js' )
-  , '3iotBox.dev' : path.resolve( buildRoot, '3iotBox.js' )
+  { '3iotBox.min' : path.resolve( buildRoot, 'client.js' )
+  , '3iotBox.dev' : path.resolve( buildRoot, 'client.js' )
   }
 , output:
   { path: buildRoot

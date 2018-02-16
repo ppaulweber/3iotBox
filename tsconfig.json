@@ -2,7 +2,7 @@
   { "target":            "es5"
   , "module":            "commonjs"
   , "moduleResolution":  "node"
-  , "outDir":            "obj/node"
+  , "outDir":            "obj/src/ts"
   , "lib":
     [ "es2016"
     , "dom"
@@ -11,7 +11,7 @@
   , "inlineSources":     false
   , "declaration":       true
   , "stripInternal":     true
-  , "strictNullChecks":  true
+  , "strictNullChecks":  false
   , "noImplicitAny":     true
   , "noImplicitReturns": true
   , "noImplicitThis":    true
@@ -21,7 +21,7 @@
   [ "src/ts"
   ]
 , "files":
-  [ "src/ts/3iotBox.ts"
+  [ "src/ts/client.ts"
   , "src/ts/service.ts"
   ]
 }
