@@ -52,9 +52,14 @@ let argsDefinition =
   , alias:        'c'
   , defaultValue: 'config.json'
   }
+, { name:         'delay'
+  , alias:        'd'
+  , type:         Number
+  , defaultValue: 500
+  }
 ];
 
-var args = null;
+var args : any = null;
 
 try
 {
@@ -367,34 +372,24 @@ function IOT_setConfig
 }
 
 
-function kernelStep()
+function processDelay()
 {
-    setTimeout( kernelTask, 1000 );
+    setTimeout( processInput, args.delay );
 }
 
 function OFS_error( data : any )
 {
     console.log( data );
-    kernelStep();
+    processDelay();
 }
 
 function IOT_error( data : any )
 {
     console.log( data.err );
-    kernelStep();
+    processDelay();
 }
 
-function kernelTask()
-{
-    IOT_getConfig
-    ( configuration.IOT
-    , 0
-    , getClientInput
-    , IOT_error
-    );
-}
-
-function getClientInput()
+function processInput()
 {
     IOT_getConfig
     ( configuration.IOT
@@ -413,7 +408,7 @@ function processReceipt( receipt : any )
     if( currentReceipt && currentReceipt.uuid == uuid )
     {
         // already updated the IoT receipt information
-        kernelStep();
+        processDelay();
         return;
     }
 
@@ -534,7 +529,7 @@ function processReceipt( receipt : any )
                                                           );
 
                                                           currentReceipt = receiptObject;
-                                                          kernelStep();
+                                                          processDelay();
                                                       }
                                                       , IOT_error
                                                     );
@@ -561,7 +556,14 @@ function processReceipt( receipt : any )
     );
 }
 
-function pixels2Stream( pixels : any, increment : number = 1, bg : number = 70, gw : number = 140, debug : boolean = false ) : string
+function pixels2Stream
+( pixels : any
+, increment : number = 1
+, bg : number = 70
+, gw : number = 140
+, debug : boolean = false
+)
+: string
 {
     var pixelStream = '';
     for( var x = 0; x < pixels.shape[0]; x += increment )
@@ -582,7 +584,7 @@ function pixels2Stream( pixels : any, increment : number = 1, bg : number = 70, 
                 pixelStream += 'b';
             }
         }
-        pixelStream += 'w;';
+        pixelStream += 'w\n';
     }
     if( increment > 1 )
     {
@@ -598,19 +600,15 @@ function pixels2Stream( pixels : any, increment : number = 1, bg : number = 70, 
     {
         if( c == 'w' )
         {
-            pixelStreamDebug += '\u2588\u2588';
+            pixelStreamDebug += '\u001b[37;1m\u2588\u2588\u001b[0m'; // white as white
         }
         else if( c == 'g' )
         {
-            pixelStreamDebug += '\u001b[30;1m\u2588\u2588\u001b[0m';
+            pixelStreamDebug += '\u001b[36;1m\u2588\u2588\u001b[0m'; // gray as cyan
         }
         else if( c == 'b' )
         {
-            pixelStreamDebug += '  ';
-        }
-        else if( c == ';' )
-        {
-            pixelStreamDebug += '\n';
+            pixelStreamDebug += '\u001b[34;1m\u2588\u2588\u001b[0m'; // blue as black
         }
         else
         {
@@ -628,7 +626,7 @@ function pixels2Stream( pixels : any, increment : number = 1, bg : number = 70, 
     var pixelCounter = 0;
     for( let c of pixelStream )
     {
-        if( c == ';' )
+        if( c == '\n' )
         {
             continue;
         }
@@ -649,7 +647,7 @@ function pixels2Stream( pixels : any, increment : number = 1, bg : number = 70, 
     return pixelStreamCompressed;
 }
 
-kernelStep();
+processInput();
 
 //
 //  Local variables:
