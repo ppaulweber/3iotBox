@@ -94,7 +94,7 @@ if( args.standalone )
     var httpServer = EXPRESS();
     httpServer.use( allowCrossDomain );
     httpServer.use( '/', EXPRESS.static( __dirname + '/../html' ) );
-    httpServer.use( '/_nodejs', EXPRESS.static( __dirname + '/../../obj/node' ) );
+    httpServer.use( '/_nodejs', EXPRESS.static( __dirname + '/../../obj/src/ts' ) );
     httpServer.use( '/_module', EXPRESS.static( __dirname + '/../../node_modules' ) );
     httpServer.listen( httpPort );
     
