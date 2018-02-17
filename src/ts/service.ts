@@ -389,17 +389,35 @@ function IOT_error( data : any )
     processDelay();
 }
 
+let currentReceipt : any = null;
+
 function processInput()
 {
-    IOT_getConfig
-    ( configuration.IOT
-    , 1
-    , processReceipt
-    , IOT_error
-    );    
+    if( !currentReceipt )
+    {
+        // service started, fetch first possible old receipt output
+        IOT_getConfig
+        ( configuration.IOT
+        , 2
+        , ( data : any ) =>
+          {
+              currentReceipt = data;
+              processInput();
+          }
+        , IOT_error
+        );
+    }
+    else
+    {
+        // fetched already info, process the IoT input data
+        IOT_getConfig
+        ( configuration.IOT
+        , 1
+        , processReceipt
+        , IOT_error
+        );
+    }
 }
-
-let currentReceipt : any = null;
 
 function processReceipt( receipt : any )
 {
@@ -565,6 +583,7 @@ function pixels2Stream
 )
 : string
 {
+    var pixelStreamWidth = 0;
     var pixelStream = '';
     for( var x = 0; x < pixels.shape[0]; x += increment )
     {
@@ -585,6 +604,7 @@ function pixels2Stream
             }
         }
         pixelStream += 'w\n';
+        pixelStreamWidth++;
     }
     if( increment > 1 )
     {
@@ -593,6 +613,7 @@ function pixels2Stream
             pixelStream += 'w';
         }
         pixelStream += 'w';
+        pixelStreamWidth++;
     }
     
     var pixelStreamDebug = '';
@@ -621,7 +642,7 @@ function pixels2Stream
         console.log( pixelStreamDebug );
     }
 
-    var pixelStreamCompressed = '';
+    var pixelStreamCompressed = '' + pixelStreamWidth + 'x';
     var pixelPrevious = '';
     var pixelCounter = 0;
     for( let c of pixelStream )
