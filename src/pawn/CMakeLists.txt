@@ -22,12 +22,11 @@
 #
 
 set( PAWN_SRC
-  ${CMAKE_CURRENT_SOURCE_DIR}/test.p
-  ${CMAKE_CURRENT_SOURCE_DIR}/display.p
+  ${CMAKE_CURRENT_SOURCE_DIR}/logic.p
   )
 
 set( PAWN_BIN
-  ${CMAKE_CURRENT_BINARY_DIR}/test.amx
+  ${CMAKE_CURRENT_BINARY_DIR}/logic.amx
   )
 
 set( PAWN_OPT

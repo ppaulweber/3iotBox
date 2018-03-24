@@ -419,17 +419,22 @@ function processInput()
     }
 }
 
+var framebuffer : string[][] = null;
+
 function processReceipt( receipt : any )
 {
     let uuid = receipt.uuid;
     
-    if( currentReceipt && currentReceipt.uuid == uuid )
+    if( framebuffer && currentReceipt && currentReceipt.uuid == uuid )
     {
         // already updated the IoT receipt information
         processDelay();
         return;
     }
 
+    framebufferClear();
+    //framebufferDump();
+    
     OFS_getReceiptAsJSON
     ( configuration.OFS
     , uuid
@@ -463,8 +468,10 @@ function processReceipt( receipt : any )
                           return;
                       }
                       
-                      let receiptAsQrCodeStream = pixels2Stream( pixels, 2, 96, 160, true );
-
+                      /*let receiptAsQrCodeStream = */
+                      pixels2Stream( pixels, 2, 96, 160, true );
+                      pixels2Framebuffer( pixels );
+                      
                       OFS_getReceiptAsHTML
                       ( configuration.OFS
                       , uuid
@@ -524,15 +531,77 @@ function processReceipt( receipt : any )
                                                         return;
                                                     }
                                               
-                                                    let receiptAsImageStream = pixels2Stream( pixels, 1, 64, 128 );
+                                                    //let receiptAsImageStream =
+                                                    // pixels2Stream( pixels, 1, 64, 128 );
                                                     // console.log( receiptAsImageStream );
+                                                    // pixels2Framebuffer( pixels, 0, 60 );
 
+                                                    //framebufferDump();
+                                                    var fb2s = framebuffer2Stream();
+                                                    
                                                     let receiptObject =
                                                     { sync: receipt.stamp
                                                     , uuid: receipt.uuid
-                                                    , data: JSON.stringify( receiptAsJSON )
-                                                    , image: receiptAsImageStream
-                                                    , qrcode: receiptAsQrCodeStream
+                                                    , data0 : fb2s[0]
+                                                    , data1 : fb2s[1]
+                                                    , data2 : fb2s[2]
+                                                    , data3 : fb2s[3]
+                                                    , data4 : fb2s[4]
+                                                    , data5 : fb2s[5]
+                                                    , data6 : fb2s[6]
+                                                    , data7 : fb2s[7]
+                                                    , data8 : fb2s[8]
+                                                    , data9 : fb2s[9]
+                                                    , data10 : fb2s[10]
+                                                    , data11 : fb2s[11]
+                                                    , data12 : fb2s[12]
+                                                    , data13 : fb2s[13]
+                                                    , data14 : fb2s[14]
+                                                    , data15 : fb2s[15]
+                                                    , data16 : fb2s[16]
+                                                    , data17 : fb2s[17]
+                                                    , data18 : fb2s[18]
+                                                    , data19 : fb2s[19]
+                                                    , data20 : fb2s[20]
+                                                    , data21 : fb2s[21]
+                                                    , data22 : fb2s[22]
+                                                    , data23 : fb2s[23]
+                                                    , data24 : fb2s[24]
+                                                    , data25 : fb2s[25]
+                                                    , data26 : fb2s[26]
+                                                    , data27 : fb2s[27]
+                                                    , data28 : fb2s[28]
+                                                    , data29 : fb2s[29]
+                                                    , data30 : fb2s[30]
+                                                    , data31 : fb2s[31]
+                                                    , data32 : fb2s[32]
+                                                    , data33 : fb2s[33]
+                                                    , data34 : fb2s[34]
+                                                    , data35 : fb2s[35]
+                                                    , data36 : fb2s[36]
+                                                    , data37 : fb2s[37]
+                                                    , data38 : fb2s[38]
+                                                    , data39 : fb2s[39]
+                                                    , data40 : fb2s[40]
+                                                    , data41 : fb2s[41]
+                                                    , data42 : fb2s[42]
+                                                    , data43 : fb2s[43]
+                                                    , data44 : fb2s[44]
+                                                    , data45 : fb2s[45]
+                                                    , data46 : fb2s[46]
+                                                    , data47 : fb2s[47]
+                                                    , data48 : fb2s[48]
+                                                    , data49 : fb2s[49]
+                                                    , data50 : fb2s[50]
+                                                    , data51 : fb2s[51]
+                                                    , data52 : fb2s[52]
+                                                    , data53 : fb2s[53]
+                                                    , data54 : fb2s[54]
+                                                    , data55 : fb2s[55]
+                                                    , data56 : fb2s[56]
+                                                    , data57 : fb2s[57]
+                                                    , data58 : fb2s[58]
+                                                    , data59 : fb2s[59]
                                                     };
                                                     
                                                     IOT_setConfig
@@ -572,6 +641,107 @@ function processReceipt( receipt : any )
       , receipt.url
       , receipt.api
     );
+}
+
+function pixels2Framebuffer
+( pixels : any
+, posX : number = 0
+, posY : number = 0
+, bg : number = 70
+, gw : number = 140
+)
+{
+    for( var x = 0; x < pixels.shape[0]; x += 1 )
+    {
+        for( var y = 0; y < pixels.shape[1]; y += 1 )
+        {
+            let pixel = ( pixels.get( y, x, 0 ) + pixels.get( y, x, 1 ) + pixels.get( y, x, 2 ) + pixels.get( y, x, 3 ) ) / 4;
+            var framebufferPixel = '';
+            
+            if( pixel > gw )
+            {
+                framebufferPixel = 'w';
+            }
+            else if( pixel >= bg && pixel < gw )
+            {
+                framebufferPixel = 'g';
+            }
+            else
+            {
+                framebufferPixel = 'b';
+            }
+
+            if( ((posY + x) < 384) && ((posX + y) < 640) )
+            {
+                framebuffer[ posY + x ][ posX + y ] = framebufferPixel;
+            }
+        }
+    }
+}
+
+function framebuffer2Stream
+(
+)
+: string[]
+{
+    var pixelStream = [];
+    for( var y = 0; y < 384; y++ )
+    {
+        pixelStream[ y ] = '';
+        for( var x = 0; x < 640; x++ )
+        {
+            pixelStream[ y ] += framebuffer[ y ][ x ];
+        }
+    }
+    return pixelStream;
+}
+
+function framebufferClear
+(
+)
+{
+    framebuffer = [];
+    for( var y = 0; y < 384; y++ )
+    {
+        framebuffer[ y ] = [];
+        for( var x = 0; x < 640; x++ )
+        {
+            framebuffer[ y ][ x ] = ' ';
+        }
+    }
+}
+
+function framebufferDump
+(
+)
+{
+    var fb2dbg = '';
+    for( var y = 0; y < 384; y++ )
+    {
+        for( var x = 0; x < 640; x++ )
+        {
+            let fbp = framebuffer[ y ][ x ];
+            if( fbp == 'w' )
+            {
+                fb2dbg += '\u001b[37;1m\u2588\u2588\u001b[0m'; // white as white
+            }
+            else if( fbp == 'g' )
+            {
+                fb2dbg += '\u001b[36;1m\u2588\u2588\u001b[0m'; // gray as cyan
+            }
+            else if( fbp == 'b' )
+            {
+                fb2dbg += '\u001b[34;1m\u2588\u2588\u001b[0m'; // blue as black
+            }
+            else
+            {
+                fb2dbg += '\u001b[34;1m\u2588\u2588\u001b[0m'; // none as yellow
+            }
+        }
+        fb2dbg += '\n';
+    }
+    
+    console.log( fb2dbg );
 }
 
 function pixels2Stream
@@ -640,32 +810,35 @@ function pixels2Stream
     if( debug )
     {
         console.log( pixelStreamDebug );
+        console.log( pixelStreamWidth );
     }
 
-    var pixelStreamCompressed = '' + pixelStreamWidth + 'x';
-    var pixelPrevious = '';
-    var pixelCounter = 0;
-    for( let c of pixelStream )
-    {
-        if( c == '\n' )
-        {
-            continue;
-        }
-        if( c != pixelPrevious )
-        {
-            if( pixelCounter > 0 )
-            {
-                pixelStreamCompressed += pixelCounter;
-                pixelStreamCompressed += pixelPrevious;
-            }
-            pixelCounter = 1;
-            pixelPrevious = c;
-            continue;
-        }
-        pixelCounter++;
-    }
+    return pixelStream;
+
+    // var pixelStreamCompressed = '' + pixelStreamWidth + 'x';
+    // var pixelPrevious = '';
+    // var pixelCounter = 0;
+    // for( let c of pixelStream )
+    // {
+    //     if( c == '\n' )
+    //     {
+    //         continue;
+    //     }
+    //     if( c != pixelPrevious )
+    //     {
+    //         if( pixelCounter > 0 )
+    //         {
+    //             pixelStreamCompressed += pixelCounter;
+    //             pixelStreamCompressed += pixelPrevious;
+    //         }
+    //         pixelCounter = 1;
+    //         pixelPrevious = c;
+    //         continue;
+    //     }
+    //     pixelCounter++;
+    // }
     
-    return pixelStreamCompressed;
+    // return pixelStreamCompressed;
 }
 
 processInput();

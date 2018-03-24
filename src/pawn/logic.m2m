@@ -1,0 +1,761 @@
+//
+//  Copyright (C) 2018 Philipp Paulweber, Simon Tragatschnig, and Patrick Gaubatz
+//  All rights reserved.
+//
+//  Developed by: Philipp Paulweber
+//                <https://github.com/ppaulweber/3iotBox>
+//
+//  This file is part of 3iotBox.
+//
+//  3iotBox is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+//
+//  3iotBox is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+//  GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License
+//  along with 3iotBox. If not, see <http://www.gnu.org/licenses/>.
+//
+
+<table>
+    name  = config0
+    title = Electronic Receipt (Elektronischer Beleg) [https://obono.at] (Configuration)
+    <field>
+        name       = field0
+        alias      = RecordInterval
+        title      = Record Interval
+        byteofs    = 0
+        decpl      = 0
+        type       = u32 
+        units      = sec  
+        min        = 10
+        default    = 60
+    </field>
+    <field>
+        name       = field1
+        alias      = TransmissionInterval
+        title      = Transmission Interval
+        byteofs    = 4
+        decpl      = 0
+        type       = u32
+        units      = min
+        min        = 10
+        default    = 60
+        vscale     = 0.01666666667
+    </field>
+    <field>
+        name       = field2
+        alias      = TransmissionMode
+        title      = Transmission Mode
+        byteofs    = 8
+        decpl      = 0
+        type       = u8
+        default    = 0
+        editmask   = 0=Intervall;1=Wakeup;2=Online
+    </field>
+</table>
+
+<table>
+    name  = config1
+    title = Electronic Receipt (Elektronischer Beleg) [https://obono.at] (Client Input --> 3IoT Server --> 3iotBox Service)
+    <field>
+        name       = field0
+        alias      = uuid
+        title      = Receipt (Beleg) UUID
+        type       = string
+        byteofs    = 0
+        max        = 64
+        default    = "NBjmYNKsPLahmXa5edjfje"
+	edit       = 1
+    </field>
+    <field>
+        name       = field1
+        alias      = url
+        title      = Receipt (Beleg) URL
+        type       = string
+        byteofs    = 64
+        max        = 64
+        default    = "https://demo.obono.at"
+	edit       = 2
+    </field>
+    <field>
+        name       = field2
+        alias      = api
+        title      = Receipt (Beleg) API
+        type       = string
+        byteofs    = 128
+        max        = 64
+        default    = "/api/v1"
+	edit       = 2
+    </field>
+</table>
+
+<table>
+    name  = config2
+    title = Electronic Receipt (Elektronischer Beleg) [https://obono.at] (3iotBox Service --> 3IoT Server --> 3IoT Device)
+    <field>
+        name       = field0
+        alias      = uuid
+        title      = Receipt (Beleg) UUID
+        type       = string
+        byteofs    = 0
+        max        = 48
+        default    = 
+	edit       = 5
+    </field>
+    <field>
+        name       = field1
+        alias      = sync
+        title      = Receipt (Beleg) Stamp
+        type       = string
+        byteofs    = 48
+        max        = 16
+        default    = 
+	edit       = 5
+    </field>
+    <field>
+        name       = field2
+        alias      = data0
+        title      = Receipt (Beleg) Data 0
+        type       = string
+        byteofs    = 64
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field3
+        alias      = data1
+        title      = Receipt (Beleg) Data 1
+        type       = string
+        byteofs    = 124
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field4
+        alias      = data2
+        title      = Receipt (Beleg) Data 2
+        type       = string
+        byteofs    = 184
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field5
+        alias      = data3
+        title      = Receipt (Beleg) Data 3
+        type       = string
+        byteofs    = 244
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field6
+        alias      = data4
+        title      = Receipt (Beleg) Data 4
+        type       = string
+        byteofs    = 304
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field7
+        alias      = data5
+        title      = Receipt (Beleg) Data 5
+        type       = string
+        byteofs    = 364
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field8
+        alias      = data6
+        title      = Receipt (Beleg) Data 6
+        type       = string
+        byteofs    = 424
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field9
+        alias      = data7
+        title      = Receipt (Beleg) Data 7
+        type       = string
+        byteofs    = 484
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field10
+        alias      = data8
+        title      = Receipt (Beleg) Data 8
+        type       = string
+        byteofs    = 544
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field11
+        alias      = data9
+        title      = Receipt (Beleg) Data 9
+        type       = string
+        byteofs    = 604
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field12
+        alias      = data10
+        title      = Receipt (Beleg) Data 10
+        type       = string
+        byteofs    = 664
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field13
+        alias      = data11
+        title      = Receipt (Beleg) Data 11
+        type       = string
+        byteofs    = 724
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field14
+        alias      = data12
+        title      = Receipt (Beleg) Data 12
+        type       = string
+        byteofs    = 784
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field15
+        alias      = data13
+        title      = Receipt (Beleg) Data 13
+        type       = string
+        byteofs    = 844
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field16
+        alias      = data14
+        title      = Receipt (Beleg) Data 14
+        type       = string
+        byteofs    = 904
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field17
+        alias      = data15
+        title      = Receipt (Beleg) Data 15
+        type       = string
+        byteofs    = 964
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field18
+        alias      = data16
+        title      = Receipt (Beleg) Data 16
+        type       = string
+        byteofs    = 1024
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field19
+        alias      = data17
+        title      = Receipt (Beleg) Data 17
+        type       = string
+        byteofs    = 1084
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field20
+        alias      = data18
+        title      = Receipt (Beleg) Data 18
+        type       = string
+        byteofs    = 1144
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field21
+        alias      = data19
+        title      = Receipt (Beleg) Data 19
+        type       = string
+        byteofs    = 1204
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field22
+        alias      = data20
+        title      = Receipt (Beleg) Data 20
+        type       = string
+        byteofs    = 1264
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field23
+        alias      = data21
+        title      = Receipt (Beleg) Data 21
+        type       = string
+        byteofs    = 1324
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field24
+        alias      = data22
+        title      = Receipt (Beleg) Data 22
+        type       = string
+        byteofs    = 1384
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field25
+        alias      = data23
+        title      = Receipt (Beleg) Data 23
+        type       = string
+        byteofs    = 1444
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field26
+        alias      = data24
+        title      = Receipt (Beleg) Data 24
+        type       = string
+        byteofs    = 1504
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field27
+        alias      = data25
+        title      = Receipt (Beleg) Data 25
+        type       = string
+        byteofs    = 1564
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field28
+        alias      = data26
+        title      = Receipt (Beleg) Data 26
+        type       = string
+        byteofs    = 1624
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field29
+        alias      = data27
+        title      = Receipt (Beleg) Data 27
+        type       = string
+        byteofs    = 1684
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field30
+        alias      = data28
+        title      = Receipt (Beleg) Data 28
+        type       = string
+        byteofs    = 1744
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field31
+        alias      = data29
+        title      = Receipt (Beleg) Data 29
+        type       = string
+        byteofs    = 1804
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field32
+        alias      = data30
+        title      = Receipt (Beleg) Data 30
+        type       = string
+        byteofs    = 1864
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field33
+        alias      = data31
+        title      = Receipt (Beleg) Data 31
+        type       = string
+        byteofs    = 1924
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field34
+        alias      = data32
+        title      = Receipt (Beleg) Data 32
+        type       = string
+        byteofs    = 1984
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field35
+        alias      = data33
+        title      = Receipt (Beleg) Data 33
+        type       = string
+        byteofs    = 2044
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field36
+        alias      = data34
+        title      = Receipt (Beleg) Data 34
+        type       = string
+        byteofs    = 2104
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field37
+        alias      = data35
+        title      = Receipt (Beleg) Data 35
+        type       = string
+        byteofs    = 2164
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field38
+        alias      = data36
+        title      = Receipt (Beleg) Data 36
+        type       = string
+        byteofs    = 2224
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field39
+        alias      = data37
+        title      = Receipt (Beleg) Data 37
+        type       = string
+        byteofs    = 2284
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field40
+        alias      = data38
+        title      = Receipt (Beleg) Data 38
+        type       = string
+        byteofs    = 2344
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field41
+        alias      = data39
+        title      = Receipt (Beleg) Data 39
+        type       = string
+        byteofs    = 2404
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field42
+        alias      = data40
+        title      = Receipt (Beleg) Data 40
+        type       = string
+        byteofs    = 2464
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field43
+        alias      = data41
+        title      = Receipt (Beleg) Data 41
+        type       = string
+        byteofs    = 2524
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field44
+        alias      = data42
+        title      = Receipt (Beleg) Data 42
+        type       = string
+        byteofs    = 2584
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field45
+        alias      = data43
+        title      = Receipt (Beleg) Data 43
+        type       = string
+        byteofs    = 2644
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field46
+        alias      = data44
+        title      = Receipt (Beleg) Data 44
+        type       = string
+        byteofs    = 2704
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field47
+        alias      = data45
+        title      = Receipt (Beleg) Data 45
+        type       = string
+        byteofs    = 2764
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field48
+        alias      = data46
+        title      = Receipt (Beleg) Data 46
+        type       = string
+        byteofs    = 2824
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field49
+        alias      = data47
+        title      = Receipt (Beleg) Data 47
+        type       = string
+        byteofs    = 2884
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field50
+        alias      = data48
+        title      = Receipt (Beleg) Data 48
+        type       = string
+        byteofs    = 2944
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field51
+        alias      = data49
+        title      = Receipt (Beleg) Data 49
+        type       = string
+        byteofs    = 3004
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field52
+        alias      = data50
+        title      = Receipt (Beleg) Data 50
+        type       = string
+        byteofs    = 3064
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field53
+        alias      = data51
+        title      = Receipt (Beleg) Data 51
+        type       = string
+        byteofs    = 3124
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field54
+        alias      = data52
+        title      = Receipt (Beleg) Data 52
+        type       = string
+        byteofs    = 3184
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field55
+        alias      = data53
+        title      = Receipt (Beleg) Data 53
+        type       = string
+        byteofs    = 3244
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field56
+        alias      = data54
+        title      = Receipt (Beleg) Data 54
+        type       = string
+        byteofs    = 3304
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field57
+        alias      = data55
+        title      = Receipt (Beleg) Data 55
+        type       = string
+        byteofs    = 3364
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field58
+        alias      = data56
+        title      = Receipt (Beleg) Data 56
+        type       = string
+        byteofs    = 3424
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field59
+        alias      = data57
+        title      = Receipt (Beleg) Data 57
+        type       = string
+        byteofs    = 3484
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field60
+        alias      = data58
+        title      = Receipt (Beleg) Data 58
+        type       = string
+        byteofs    = 3544
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+    <field>
+        name       = field61
+        alias      = data59
+        title      = Receipt (Beleg) Data 59
+        type       = string
+        byteofs    = 3604
+        max        = 60
+        default    = 
+        edit       = 5
+    </field>
+</table>
+
+<split>
+    source = rm2mraw
+    target = histdata0
+    key    = *
+</split>
+
+<table>
+    name = histdata0
+    <field>
+        name    = ch0
+        alias   = BatteryVoltage
+        title   = Battery Voltage
+        byteofs = 1
+        decpl   = 2
+        type    = s16
+        vscale  = 0.001
+        units   = V
+    </field>
+    <field>
+        name    = ch1
+        alias   = USBVoltage
+        title   = USB Voltage
+        byteofs = 3
+        decpl   = 2
+        type    = s16
+        vscale  = 0.001
+        units   = V
+    </field>
+    <field>
+        name    = ch2
+        alias   = Temperature
+        title   = Temperature
+        byteofs = 5
+        decpl   = 1
+        type    = s16
+        vscale  = 0.1
+        units   = °C
+    </field>
+</table>
+
