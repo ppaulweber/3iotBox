@@ -24,7 +24,6 @@
 #pragma amxram 1310720
 #pragma dynamic  10000
 
-
 #include "filetransfer"
 #include "sdk/iotbox"
 #include "rM2M"
@@ -45,12 +44,7 @@ const HISTDATA_SIZE = 3 * 2 + 1;
 static iRecItv;
 static iTxItv;
 static iTxMode; // (0 = interval, 1 = wakeup, 2 = online)
-
 static iRecTimer;
-static iTxTimer;
-
-forward public Handle_SMS( const SmsTel[], const SmsText[] );
-
 
 static receipt_uuid{ 48 };
 static receipt_sync{ 16 };
@@ -87,11 +81,9 @@ main()
     ReadConfig( CFG_BASIC_INDEX );
     ReadConfig( 2 );
 
-    iTxTimer  = 0;
     iRecTimer = 0;
     rM2M_TxSetMode( iTxMode );
     rM2M_CfgOnChg( funcidx( "ReadConfig" ) );
-    rM2M_SmsInit( funcidx( "Handle_SMS" ), 0 );
     rM2M_TimerAdd( funcidx( "Timer1s" ) );
     rM2M_TimerAddExt( funcidx( "Display_Task" ), true, 1 );
 }
@@ -106,14 +98,6 @@ public Timer1s()
 
     printf( "api %i, levelsignal strength %i\r\n", getapilevel(), rM2M_GSMGetRSSI() );
 }
-
-
-public Handle_SMS( const SmsTel[], const SmsText[] )
-{
-    printf( "received SMS from %s with text: %s\r\n", SmsTel, SmsText );    
-}
-
-
 
 
 const COLOR_RED     = 0x00ff0000;
@@ -352,12 +336,6 @@ const VCM_DC_SETTING                            = 0x82;
 const FLASH_MODE                                = 0xe5;
 
 
-/* const Color : { */
-/*     BLACK = 0, */
-/*     GRAY, */
-/*     WHITE, */
-/* } */
-
 epd_init()
 {
     spi_init();
@@ -376,30 +354,10 @@ epd_init()
     rM2M_GpioSet( DISPLAY_SPI_RESET, 1 ); // low-active
 
     Display_Reset();
-    
-    epd_framebuffer_clear();
-    /* epd_framebuffer_swap(); */
-    /* epd_framebuffer_clear(); */
 }
-
-/* epd_framebuffer_swap() */
-/* { */
-/*     edp_current = ( edp_current + 1 ) % 2; */
-/* } */
-
-epd_framebuffer_clear()
-{
-    /* new index; */
-    /* for( index = 0; index < 1024; index++ ) */
-    /* { */
-    /* 	epd_framebuffer[ index ] = 0; */
-    /* } */
-}
-
 
 Display_Enable()
-{
-    
+{    
     rM2M_GpioSet( DISPLAY_SPI_CHIP_SELECT, 0 ); // low (enable)
 }
 
@@ -407,7 +365,6 @@ Display_Disable()
 {
     rM2M_GpioSet( DISPLAY_SPI_CHIP_SELECT, 1 ); // high (disable)
 }
-
 
 Display_SendCommand( const command )
 {
@@ -430,7 +387,6 @@ Display_Command( const command, dataBuffer{} = { 0x00 }, const dataLength = 0 )
     Display_SendCommand( command );
     Display_SendData( dataBuffer, dataLength );
 }
-
 
 public Display_Init()
 {
