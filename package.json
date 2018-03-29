@@ -2,9 +2,9 @@
   "name": "3iotBox",
   "displayName": "3iotBox",
   "description": "3IoT Complete Box",
-  "author": "Philipp Paulweber (https://TODO)",
+  "author": "Philipp Paulweber",
   "publisher": "Unpublished",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "license": "GPL-3.0",
   "repository": {
     "type": "git",
