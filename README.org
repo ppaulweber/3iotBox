@@ -23,7 +23,10 @@
 
 * 3iotBox -- 3 IoT Complete Box
 
-TBD
+This project is an proof of concept implementation for a customer display to deliver electronic receipts.
+The hardware is the "3IoT Complete" box provided by 3 Austria (Hutchison 3G Austria GmbH).
+The fiscal middleware of [[https://obono.at][obono]] provides an implementation for the austrian regulation for cash registers (Registrierkassensicherheitsverordnung, RKSV) and electronic receipts. The documentation for the obono fiskal service can be found at [[https://demo.obono.at/api/v1/docs]].
+The fiscal middleware is provided by [[https://codewerkstatt.at][CodeWerkstatt]].
 
 ** Copyright and License
 
