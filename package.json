@@ -17,12 +17,12 @@
   "typings": "./obj/src/ts/3iotBox",
   "devDependencies": {
     "@types/jquery": "^3.3.1",
-    "@types/node": "^7.0.62",
+    "@types/node": "^7.0.63",
     "copy-webpack-plugin": "^4.5.1",
+    "hoek": "^5.0.3",
     "jquery": "^3.3.1",
     "rimraf": "^2.6.1",
     "typescript": "^2.8.3",
-    "hoek": "^5.0.3",
     "webpack": "^2.3.3",
     "webpack-uglify-js-plugin": "^1.1.9"
   },
