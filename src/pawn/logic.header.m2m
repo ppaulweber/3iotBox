@@ -1,0 +1,119 @@
+//
+//  Copyright (C) 2018 Philipp Paulweber, Simon Tragatschnig, and Patrick Gaubatz
+//  All rights reserved.
+//
+//  Developed by: Philipp Paulweber
+//                <https://github.com/ppaulweber/3iotBox>
+//
+//  This file is part of 3iotBox.
+//
+//  3iotBox is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+//
+//  3iotBox is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+//  GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License
+//  along with 3iotBox. If not, see <http://www.gnu.org/licenses/>.
+//
+
+<table>
+    name  = config0
+    title = Electronic Receipt (Elektronischer Beleg) [https://obono.at] (Configuration)
+    <field>
+        name       = field0
+        alias      = RecordInterval
+        title      = Record Interval
+        byteofs    = 0
+        decpl      = 0
+        type       = u32 
+        units      = sec  
+        min        = 10
+        default    = 60
+    </field>
+    <field>
+        name       = field1
+        alias      = TransmissionInterval
+        title      = Transmission Interval
+        byteofs    = 4
+        decpl      = 0
+        type       = u32
+        units      = min
+        min        = 10
+        default    = 60
+        vscale     = 0.01666666667
+    </field>
+    <field>
+        name       = field2
+        alias      = TransmissionMode
+        title      = Transmission Mode
+        byteofs    = 8
+        decpl      = 0
+        type       = u8
+        default    = 0
+        editmask   = 0=Intervall;1=Wakeup;2=Online
+    </field>
+</table>
+
+<table>
+    name  = config1
+    title = Electronic Receipt (Elektronischer Beleg) [https://obono.at] (Client Input --> 3IoT Server --> 3iotBox Service)
+    <field>
+        name       = field0
+        alias      = uuid
+        title      = Receipt (Beleg) UUID
+        type       = string
+        byteofs    = 0
+        max        = 64
+        default    = "NBjmYNKsPLahmXa5edjfje"
+	edit       = 1
+    </field>
+    <field>
+        name       = field1
+        alias      = url
+        title      = Receipt (Beleg) URL
+        type       = string
+        byteofs    = 64
+        max        = 64
+        default    = "https://demo.obono.at"
+	edit       = 2
+    </field>
+    <field>
+        name       = field2
+        alias      = api
+        title      = Receipt (Beleg) API
+        type       = string
+        byteofs    = 128
+        max        = 64
+        default    = "/api/v1"
+	edit       = 2
+    </field>
+</table>
+
+<table>
+    name  = config2
+    title = Electronic Receipt (Elektronischer Beleg) [https://obono.at] (3iotBox Service --> 3IoT Server --> 3IoT Device)
+    <field>
+        name       = field0
+        alias      = uuid
+        title      = Receipt (Beleg) UUID
+        type       = string
+        byteofs    = 0
+        max        = 48
+        default    = 
+	edit       = 5
+    </field>
+    <field>
+        name       = field1
+        alias      = sync
+        title      = Receipt (Beleg) Stamp
+        type       = string
+        byteofs    = 48
+        max        = 16
+        default    = 
+	edit       = 5
+    </field>

@@ -21,8 +21,8 @@
 //  along with 3iotBox. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#pragma amxram 1310720
-#pragma dynamic  10000
+// #pragma amxram 13107200
+// #pragma dynamic  100000
 
 #include "filetransfer"
 #include "sdk/iotbox"
@@ -48,7 +48,7 @@ static iRecTimer;
 
 static receipt_uuid{ 48 };
 static receipt_sync{ 16 };
-static receipt_data[ 60 ]{ 60 };
+static receipt_data[ 104 ]{ 16 };
 
 forward public Display_Init();
 forward public Display_Powerup();
@@ -74,20 +74,44 @@ main()
     new timeSecond;
     new timeStamp;
     timeStamp = rM2M_GetTime( timeHour, timeMinute, timeSecond );
-    printf( "time: %d:%d:%d | %d\r\n", timeHour, timeMinute, timeSecond, timeStamp );
+    // printf( "time: %d:%d:%d | %d\r\n", timeHour, timeMinute, timeSecond, timeStamp );
     
     Display_Init();
-    
-    ReadConfig( CFG_BASIC_INDEX );
-    ReadConfig( 2 );
 
+    ReadConfig( CFG_BASIC_INDEX );
+
+    receipt_data[ 15 ]{ 12 } = 0x01;
+    receipt_data[ 15 ]{ 13 } = 0xfe;
+    receipt_data[ 15 ]{ 14 } = 0xff;
+    
+    receipt_data[  7 ]{ 13 } = 0x01;
+    receipt_data[  8 ]{ 13 } = 0x01;
+    receipt_data[  9 ]{ 13 } = 0x01;
+    receipt_data[ 10 ]{ 13 } = 0x01;
+    receipt_data[ 11 ]{ 13 } = 0x01;
+    receipt_data[ 12 ]{ 13 } = 0x01;
+    receipt_data[ 13 ]{ 13 } = 0x05;
+    receipt_data[ 14 ]{ 13 } = 0x01;
+
+    receipt_data[ 16 ]{ 13 } = 0x01;
+    receipt_data[ 17 ]{ 13 } = 0x05;
+    receipt_data[ 18 ]{ 13 } = 0x01;
+    receipt_data[ 19 ]{ 13 } = 0x01;
+    receipt_data[ 20 ]{ 13 } = 0x01;
+    receipt_data[ 21 ]{ 13 } = 0x01;
+    receipt_data[ 22 ]{ 13 } = 0x01;
+    receipt_data[ 23 ]{ 13 } = 0x01;
+
+    receipt_data[ 13 ]{ 14 } = 0x40;
+    receipt_data[ 17 ]{ 14 } = 0x40;
+    
     iRecTimer = 0;
     rM2M_TxSetMode( iTxMode );
     rM2M_CfgOnChg( funcidx( "ReadConfig" ) );
     rM2M_TimerAdd( funcidx( "Timer1s" ) );
-    rM2M_TimerAddExt( funcidx( "Display_Task" ), true, 1 );
+    
+    rM2M_TimerAddExt( funcidx( "Display_Task" ), false, 1 );
 }
-
 
 
 public Timer1s()
@@ -96,7 +120,7 @@ public Timer1s()
     Handle_Transmission();
     Handle_Record();
 
-    printf( "api %i, levelsignal strength %i\r\n", getapilevel(), rM2M_GSMGetRSSI() );
+    // printf( "api %i, levelsignal strength %i\r\n", getapilevel(), rM2M_GSMGetRSSI() );
 }
 
 
@@ -157,14 +181,19 @@ Handle_Record()
 
 public KeyChanged( iKeyState )
 {
-    // iKeyState (0=release, 1=press)
-    printf("K:%d\r\n", iKeyState);
-    
     if( iKeyState == 1 )
     {
-	if( currentLine >= 400 )
+	if( currentLine > 384 )
 	{
-	    currentLine = 199;
+	    new y;
+	    new offset;
+	    for( y = 0; y < 104; y++ )
+	    {
+		offset = (y * 16) + 64 + (104 * 16);
+		rM2M_CfgRead( 2, offset, receipt_data[ y ], 16 );
+	    }
+	    
+	    currentLine = -1;
 	}
     }
 }
@@ -187,7 +216,7 @@ public ReadConfig( cfg )
 	, CFG_BASIC_SIZE
 	);
 
-	printf( "Cfg %d size = %d\r\n", cfg, iSize );
+	// printf( "Cfg %d size = %d\r\n", cfg, iSize );
 
 	if( iSize < CFG_BASIC_SIZE )
 	{
@@ -198,28 +227,28 @@ public ReadConfig( cfg )
 	    iTmp = TXMODE;
 	    rM2M_Pack(aData, 8, iTmp,  RM2M_PACK_BE + RM2M_PACK_U8);
 	    iSize = CFG_BASIC_SIZE;
-	    print("created new Config #0\r\n");
+	    // print("created new Config #0\r\n");
 	}
 	else
 	{
 	    rM2M_Pack( aData, 0, iTmp,  RM2M_PACK_BE + RM2M_PACK_U32 + RM2M_PACK_GET);
 	    if( iTmp != iRecItv )
 	    {
-		printf( "iRecItv changed to %d s\r\n", iTmp );
+		// printf( "iRecItv changed to %d s\r\n", iTmp );
 		iRecItv = iTmp;
 	    }
 
 	    rM2M_Pack( aData, 4, iTmp,  RM2M_PACK_BE + RM2M_PACK_U32 + RM2M_PACK_GET);
 	    if( iTmp != iTxItv )
 	    {
-		printf( "iTxItv changed to %d s\r\n", iTmp );
+		// printf( "iTxItv changed to %d s\r\n", iTmp );
 		iTxItv = iTmp;
 	    }
 
 	    rM2M_Pack( aData, 8, iTmp,  RM2M_PACK_BE + RM2M_PACK_U8 + RM2M_PACK_GET );
 	    if( iTmp != iTxMode )
 	    {
-		printf( "iTxMode changed to %d\r\n", iTmp );
+		// printf( "iTxMode changed to %d\r\n", iTmp );
 		iTxMode = iTmp;
 		rM2M_TxSetMode( iTxMode );
 	    }
@@ -228,33 +257,36 @@ public ReadConfig( cfg )
     else if( cfg == 2 )
     {
 	rM2M_CfgRead( cfg,  0, receipt_uuid, 48 );
-	rM2M_CfgRead( cfg, 48, receipt_sync, 16 );	    
+	rM2M_CfgRead( cfg, 48, receipt_sync, 16 );
 
-	new index;
+    	new y;
 	new offset;
-	for( index = 0; index < 60; index++ )
+	
+	for( y = 0; y < 104; y++ )
 	{
-	    offset = (index * 60) + 64;
-	    rM2M_CfgRead( cfg, offset, receipt_data[ index ], 60 );
+	    offset = (y * 16) + 64;	    
+	    rM2M_CfgRead( cfg, offset, receipt_data[ y ], 16 );
 	}
 
-	receipt_uuid{ 47 } = '\0';
-	receipt_sync{ 15 } = '\0';
-
-	printf
-	( "uuid = %s\r\nsync = %s\r\n"
-	, receipt_uuid
-	, receipt_sync
-	);
-
-	if( currentLine > 400 )
+	if( currentLine > 384 )
 	{
 	    currentLine = -1;
 	}
+	
+	/* receipt_uuid{ 47 } = '\0'; */
+	/* receipt_sync{ 15 } = '\0'; */
+
+	/* printf */
+	/* ( "uuid = %s\r\nsync = %s\r\ndata = %x %x %x %x\r\n" */
+	/* , receipt_uuid */
+	/* , receipt_sync */
+	/* , receipt_data[ 0 ]{ 0 } */
+	/* , receipt_data[ 0 ]{ 1 } */
+	/* , receipt_data[ 0 ]{ 2 } */
+	/* , receipt_data[ 0 ]{ 3 } */
+	/* ); */
     }
 }
-
-
 
 
 const DISPLAY_SPI_INTERFACE = 0;
@@ -423,13 +455,13 @@ public Display_Refresh()
 
 public Display_Sleep()
 {
-    printf( "display: sleep: starting\r\n" );
+    // printf( "display: sleep: starting\r\n" );
 
     Display_Command( POWER_OFF );
     Display_Sync();
     Display_Command( DEEP_SLEEP, { 0xa5 }, 1 );
 
-    printf( "display: sleep: done\r\n" );
+    // printf( "display: sleep: done\r\n" );
 }
 
 public Display_Deinit()
@@ -437,7 +469,7 @@ public Display_Deinit()
     new res;
     res = rM2M_SpiClose( DISPLAY_SPI_INTERFACE );
     Display_Disable();
-    printf( "display: spi: close = %d\r\n", res );
+    // printf( "display: spi: close = %d\r\n", res );
 }
 
 public Display_Reset()
@@ -476,9 +508,11 @@ public Display_IsBusy()
     }
 }
 
+static initialized = 0;
+
 public Display_Task()
 {
-    if( currentLine < 500 )
+    if( currentLine <= 384 )
     {
 	currentLine = currentLine + 1;
     }
@@ -487,67 +521,100 @@ public Display_Task()
     {
 	Display_Powerup();
     }
+    
     if( currentLine == -10 )
     {
 	Display_Setup();
     }
     
-    if( currentLine >= 0 && currentLine < 60 )
+    if( currentLine == 0 )
+    {
+	Led_On( COLOR_BLUE );
+    }
+    
+    if( currentLine >= 0 && currentLine < 384 )
     {
     	Display_RenderLineData( currentLine );
     }
-    if( currentLine == 60 )
+
+    if( initialized == 1 )
     {
-    	Display_Refresh();
-	currentLine = 400;
+	if( currentLine == 104 )
+	{
+	    Led_On( COLOR_BLUE );
+	    Display_Refresh();
+	    currentLine = 385;
+	}
+    }
+    else
+    {
+	if( currentLine == 384 )
+	{
+	    Led_On( COLOR_BLUE );
+	    Display_Refresh();
+	    currentLine = 385;
+	    initialized = 1;
+	}
     }
 
-    if( currentLine >= 200 && currentLine < 230 )
-    {
-    	Display_RenderLineColor( 0x00 );
-    }
-    if( currentLine == 230 )
-    {
-    	Display_Refresh();
-    }    
+    rM2M_TimerRemoveExt( funcidx( "Display_Task" ) );    
+    rM2M_TimerAddExt( funcidx( "Display_Task" ), false, 1 );
 }
 
 Display_RenderLineData( line )
 {
     new index;
     new buffer{ 1 };
-    for( index = 0; index < 640; index += 2 )
-    {
-	if( index >= 60 )
-	{
-	    buffer{ 0 } = 0x00;
-	    Display_SendData( buffer, 1 );
-	    continue;
-	}
+    new pixel;
+    new data = 0x00;
+    new cmd = 0x00;
 
-	new pixel = 0x00;
-	new pixel0 = receipt_data[ line ]{ index };
-	new pixel1 = receipt_data[ line ]{ index+1 };
-	    
-	if( pixel0 == 'w' )
-	{
-	    pixel = 0x00 | (0x0f & pixel);
-	}
-	if( pixel0 == 'b' )
-	{
-	    pixel = 0x30 | (0x0f & pixel);
-	}
-	if( pixel1 == 'w' )
-	{
-	    pixel = 0x00 | (0xf0 & pixel);
-	}
-	if( pixel1 == 'b' )
-	{
-	    pixel = 0x03 | (0xf0 & pixel);
-	}
-	    
-	buffer{ 0 } = pixel;	
+    if( line >= 104 )
+    {
+	Display_RenderLineColor( 0x00 );
+	return;
+    }
+
+    new scale;
+    for( scale = 0; scale < 2; scale++ )
+    {
+    // blanker
+    buffer{ 0 } = 0x00;
+    for( index = 0; index <106; index++ )
+    {
 	Display_SendData( buffer, 1 );
+    }
+    
+    // image data
+    for( index = 0; index < 16; index++ )
+    {	
+        data = receipt_data[ line ]{ index };
+	
+	for( pixel = 0; pixel < 8; pixel += 1 )
+	{
+	    cmd = (data >>> 7) & 0x1;
+	    
+	    if( cmd == 0x1 )
+	    {
+		buffer{ 0 } = 0x33;
+	    }
+	    else
+	    {
+		buffer{ 0 } = 0x00;
+	    }
+	    
+	    Display_SendData( buffer, 1 );
+	    
+	    data = data << 1;
+	}
+    }
+    
+    // blanker
+    buffer{ 0 } = 0x00;
+    for( index = 0; index < 86; index++ )
+    {
+	Display_SendData( buffer, 1 );
+    }
     }
 }
 
@@ -555,9 +622,9 @@ Display_RenderLineColor( color )
 {
     new index;
     new buffer{ 1 };
-    for( index = 0; index < EPD_WIDTH; index++ )
+    buffer{ 0 } = color;
+    for( index = 0; index < 320; index++ )
     {
-	buffer{ 0 } = color;	
 	Display_SendData( buffer, 1 );
     }
 }

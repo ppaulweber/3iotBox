@@ -27,14 +27,19 @@
     "webpack-uglify-js-plugin": "^1.1.9"
   },
   "dependencies": {
+    "@pgaubatz/qruri": "^0.1.1",
     "@pgaubatz/uuid": "",
+    "@types/sprintf-js": "^1.1.0",
     "bootstrap": "^3.3.7",
     "bs58": "^1.0.1",
     "command-line-args": "^4.0.5",
     "express": "^4.16.3",
     "get-pixels": "^3.3.0",
+    "graceful-fs": "^4.1.11",
+    "grunt-bower-task": "^0.5.0",
     "jimp": "^0.2.28",
     "node-rest-client": "^3.1.0",
+    "sprintf-js": "^1.1.1",
     "webshot": "^0.18.0"
   },
   "scripts": {
@@ -43,6 +48,8 @@
     "clean": "./node_modules/.bin/rimraf ./obj/src/ts",
     "clean-all": "npm run clean && ./node_modules/.bin/rimraf ./node_modules",
     "service": "npm run deploy && node ./obj/src/ts/service.js",
-    "service-standalone": "npm run deploy && node ./obj/src/ts/service.js -s"
+    "service-synchronized": "npm run deploy && node ./obj/src/ts/service.js -S",
+    "service-standalone": "npm run deploy && node ./obj/src/ts/service.js -s",
+    "service-standalone-synchronized": "npm run deploy && node ./obj/src/ts/service.js -s -S"
   }
 }

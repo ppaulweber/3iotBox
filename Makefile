@@ -39,5 +39,11 @@ service: package.json
 service-run:
 	npm run service
 
+service-run-synchronized:
+	npm run service-synchronized
+
 service-run-standalone:
 	npm run service-standalone
+
+service-run-standalone-synchronized:
+	npm run service-standalone-synchronized

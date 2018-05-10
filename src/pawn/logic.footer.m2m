@@ -1,0 +1,41 @@
+
+<split>
+    source = rm2mraw
+    target = histdata0
+    key    = *
+</split>
+
+<table>
+    name = histdata0
+    <field>
+        name    = ch0
+        alias   = BatteryVoltage
+        title   = Battery Voltage
+        byteofs = 1
+        decpl   = 2
+        type    = s16
+        vscale  = 0.001
+        units   = V
+    </field>
+    <field>
+        name    = ch1
+        alias   = USBVoltage
+        title   = USB Voltage
+        byteofs = 3
+        decpl   = 2
+        type    = s16
+        vscale  = 0.001
+        units   = V
+    </field>
+    <field>
+        name    = ch2
+        alias   = Temperature
+        title   = Temperature
+        byteofs = 5
+        decpl   = 1
+        type    = s16
+        vscale  = 0.1
+        units   = °C
+    </field>
+</table>
+

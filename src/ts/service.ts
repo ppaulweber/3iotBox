@@ -34,8 +34,8 @@ let REST = require( 'node-rest-client' ).Client;
 let BASE58 = require( 'bs58' );
 let UUID = require( '@pgaubatz/uuid' );
 let GET_PIXELS = require( 'get-pixels' );
-let WEBSHOT = require( 'webshot' );
-let JIMP = require('jimp');
+
+// import { sprintf } from "sprintf-js";
 
 let argsDefinition =
 [ { name:         'port'
@@ -48,14 +48,19 @@ let argsDefinition =
   , type:         Boolean
   , defaultValue: false
   }
+, { name:         'synchronized'
+  , alias:        'S'
+  , type:         Boolean
+  , defaultValue: false
+  }
 , { name:         'configuration'
   , alias:        'c'
-  , defaultValue: 'config.json'
+  , defaultValue: './config.json'
   }
 , { name:         'delay'
   , alias:        'd'
   , type:         Number
-  , defaultValue: 500
+  , defaultValue: 1000
   }
 ];
 
@@ -73,11 +78,17 @@ catch( e )
 
 var configuration = JSON.parse( FS.readFileSync( args.configuration, 'utf8') );
 if( typeof configuration.IOT === 'undefined'
+ || typeof configuration.IOT.url === 'undefined'
+ || typeof configuration.IOT.api === 'undefined'
  || typeof configuration.IOT.customerId === 'undefined'
  || typeof configuration.IOT.deviceSiteId === 'undefined'
  || typeof configuration.IOT.username === 'undefined'
  || typeof configuration.IOT.password === 'undefined'
  || typeof configuration.OFS === 'undefined'
+ || typeof configuration.OFS.url === 'undefined'
+ || typeof configuration.OFS.api === 'undefined'
+ || typeof configuration.OFS.username === 'undefined'
+ || typeof configuration.OFS.password === 'undefined'
   )
 {
     console.log( 'invalid configuration file "' + args.configuration + '"' );
@@ -106,63 +117,12 @@ if( args.standalone )
     console.error( __filename + ': serving content on http://localhost:' + httpPort );
 }
 
-
 let rest = new REST();
-
-//
-//
-// QRC
-//
-
-let QRC_URL = 'https://api.qrserver.com';
-let QRC_API = '/v1';
-
-type QRC_Callback = ( data : any ) => any;
-
-function QRC_getPNG
-( data : string
-, size : number = 150
-, success : QRC_Callback = QRC_Callback => {}
-, failure : QRC_Callback = QRC_Callback => {}
-, url : string = QRC_URL
-, api : string = QRC_API
-)
-{
-    let endpoint = '/create-qr-code/?size=' + size + 'x' + size + '&data=' + encodeURIComponent( data );
-    let request = url + api + endpoint;
-    var communication = rest.get
-    ( request
-    , { headers:
-        { 'Content-Type': 'image/png'
-        }
-      }
-    , ( data : any, response : any ) =>
-      {
-          // data is already PNG blob 
-          console.log( __filename + ': ' + request + '\n' + 'PNG' );
-          success( data );
-      }
-    );
-
-    communication.on
-    ( 'error'
-    , ( error : any ) =>
-      {
-          let message = 'request error: ' + error;
-          console.log( __filename + ': ' + message );
-          failure( message );
-      }
-    );
-}
-
 
 //
 //
 // OFS
 //
-
-let OFS_URL = 'https://demo.obono.at'
-let OFS_API = '/api/v1'
 
 type OFS_Configuration = any;
 type OFS_Callback = ( data : any ) => any;
@@ -172,12 +132,10 @@ function OFS_getReceiptAsJSON
 , receiptId : string
 , success : OFS_Callback = OFS_Callback => {}
 , failure : OFS_Callback = OFS_Callback => {}
-, url : string = OFS_URL
-, api : string = OFS_API
 )
 {
     let endpoint = '/belege/' + receiptId;
-    let request = url + api + endpoint;
+    let request = configuration.url + configuration.api + endpoint;
     var communication = rest.get
     ( request
     , { headers:
@@ -214,48 +172,135 @@ function OFS_getReceiptAsJSON
 function OFS_getReceiptLinkAsQrCodePNG
 ( configuration: OFS_Configuration
 , receiptId : string
-, size : number
 , success : OFS_Callback = OFS_Callback => {}
 , failure : OFS_Callback = OFS_Callback => {}
-, url : string = OFS_URL
-, api : string = OFS_API
 )
 {
-    QRC_getPNG
-    ( 'https://demo.obono.at/beleg/' + receiptId
-    , size
-    , ( data : any ) =>
-      {
-          // data is blob, create PNG binary buffer
-          let png = new Buffer( data, 'binary' );
-          success( png );
-      }
-    , failure
-    );
+    const qruri = require('@pgaubatz/qruri');
+    const data = qruri( configuration.url + '/beleg/' + receiptId );    
+    success( data );
 }
 
-function OFS_getReceiptAsHTML
+function OFS_getAuth
 ( configuration: OFS_Configuration
-, receiptId : string
 , success : OFS_Callback = OFS_Callback => {}
 , failure : OFS_Callback = OFS_Callback => {}
-, url : string = OFS_URL
-, api : string = OFS_API
 )
 {
-    let endpoint = '/export/html/belege/' + receiptId;
-    let request = url + api + endpoint;
-    var communication = rest.get
+    const endpoint = '/auth';
+    const request = configuration.url + configuration.api + endpoint;
+    const accessToken = Buffer.from
+    ( configuration.username + ':' + configuration.password ).toString( 'base64' );
+    let communication = rest.get
     ( request
     , { headers:
-        { 'Accept': 'text/html'
+        { 'Accept': 'application/json'
+        , 'Authorization': `Basic ${accessToken}`
         }
       }
     , ( data : any, response : any ) =>
       {
-          // data is HTML text
-          console.log( __filename + ': ' + request + '\n' + 'HTML' );
-          success( data );
+          // data is JS object, parsed from JSON string
+          console.log( __filename + ': ' + request + '\n' + JSON.stringify( data ) );
+
+          if( data.status == "error" )
+          {
+              failure( data.message );
+          }
+          else
+          {
+              success( data );
+          }
+      }
+    );
+
+    communication.on
+    ( 'error'
+    , ( error : any ) =>
+      {
+          let message = 'request error: ' + error;
+          console.log( __filename + ': ' + message );
+          failure( message );
+      }
+    );
+}
+
+function OFS_getLatestReceipt
+( configuration: OFS_Configuration
+, accessToken : string
+, cashRegisterId : string
+, success : OFS_Callback = OFS_Callback => {}
+, failure : OFS_Callback = OFS_Callback => {}
+)
+{
+    const endpoint = `/registrierkassen/${cashRegisterId}/belege?format=beleg&order=desc&limit=1`;
+    const request = configuration.url + configuration.api + endpoint;
+    let communication = rest.get
+    ( request
+    , { headers:
+        { 'Accept': 'application/json'
+        , 'Authorization': `Bearer ${accessToken}`
+        }
+      }
+    , ( data : any, response : any ) =>
+      {
+          // data is JS object, parsed from JSON string
+          console.log( __filename + ': ' + request + '\n' + JSON.stringify( data ) );
+
+          if( data.status == "error" )
+          {
+              failure( data.message );
+          }
+          else
+          {
+              success( data );
+          }
+      }
+    );
+
+    communication.on
+    ( 'error'
+    , ( error : any ) =>
+      {
+          let message = 'request error: ' + error;
+          console.log( __filename + ': ' + message );
+          failure( message );
+      }
+    );
+}
+
+function OFS_getReceipts
+( configuration: OFS_Configuration
+, accessToken : string
+, cashRegisterId : string
+, lastReceipt : any
+, success : OFS_Callback = OFS_Callback => {}
+, failure : OFS_Callback = OFS_Callback => {}
+)
+{
+    const sync = Number(lastReceipt.Belegdaten.Belegnummer) + 1
+    const endpoint = `/registrierkassen/${cashRegisterId}/belege?format=beleg&order=desc&gte=${sync}`;
+    const request = configuration.url + configuration.api + endpoint;
+    let communication = rest.get
+    ( request
+    , { headers:
+        { 'Accept': 'application/json'
+        , 'Authorization': `Bearer ${accessToken}`
+        }
+      }
+    , ( data : any, response : any ) =>
+      {
+          // data is JS object, parsed from JSON string
+          console.log( __filename + ': ' + request + '\n' + JSON.stringify( data ) );
+
+          if( data.status == "error" )
+          {
+              failure( data.message );
+          }
+          else
+          {
+              success( data );
+          }
       }
     );
 
@@ -276,9 +321,6 @@ function OFS_getReceiptAsHTML
 // IOT
 //
 
-let IOT_URL = 'https://iot.drei.at';
-let IOT_API = '/api/1';
-
 type IOT_Configuration = any;
 type IOT_Callback = ( data : any ) => any;
 
@@ -287,15 +329,13 @@ function IOT_getConfig
 , id : number
 , success : IOT_Callback = IOT_Callback => {}
 , failure : IOT_Callback = IOT_Callback => {}
-, url : string = IOT_URL
-, api : string = IOT_API
 )
 {
     let endpoint
         = '/customers/' + configuration.customerId
         + '/sites/' + configuration.deviceSiteId
         + '/config' + id;
-    let request = url + api + endpoint;
+    let request = configuration.url + configuration.api + endpoint;
     var communication = rest.get
     ( request
     , { headers:
@@ -337,15 +377,17 @@ function IOT_setConfig
 , data : object
 , success : IOT_Callback = IOT_Callback => {}
 , failure : IOT_Callback = IOT_Callback => {}
-, url : string = IOT_URL
-, api : string = IOT_API
 )
 {
     let endpoint
         = '/customers/' + configuration.customerId
         + '/sites/' + configuration.deviceSiteId
         + '/config' + id;
-    let request = url + api + endpoint;
+    let request = configuration.url + configuration.api + endpoint;
+
+    console.log( request );
+    // console.log( data );
+    
     var communication = rest.put
     ( request
     , { headers:
@@ -374,7 +416,10 @@ function IOT_setConfig
 
 function processDelay()
 {
-    setTimeout( processInput, args.delay );
+    if( !args[ 'synchronized' ] )
+    {        
+        setTimeout( processInput, args.delay );
+    }
 }
 
 function OFS_error( data : any )
@@ -419,22 +464,17 @@ function processInput()
     }
 }
 
-var framebuffer : string[][] = null;
-
 function processReceipt( receipt : any )
 {
     let uuid = receipt.uuid;
     
-    if( framebuffer && currentReceipt && currentReceipt.uuid == uuid )
+    if( currentReceipt && currentReceipt.uuid == uuid )
     {
         // already updated the IoT receipt information
         processDelay();
         return;
     }
 
-    framebufferClear();
-    //framebufferDump();
-    
     OFS_getReceiptAsJSON
     ( configuration.OFS
     , uuid
@@ -451,10 +491,10 @@ function processReceipt( receipt : any )
               return;
           }
 
+          
           OFS_getReceiptLinkAsQrCodePNG
           ( configuration.OFS
           , uuid
-          , 60
           , ( png : any ) =>
             {
                 GET_PIXELS
@@ -467,169 +507,90 @@ function processReceipt( receipt : any )
                           OFS_error( 'png2pixels: ' + error );
                           return;
                       }
+
+                      var data : number[][] = [];
+                      for( var y= 0; y < 104; y++ )
+                      {
+                          data.push( [] );
+                          for( var x = 0; x < 4; x++ )
+                          {
+                              data[ y ].push( 0 );
+                          }
+                      }
+
+                      let pixelStream = pixels2Stream( pixels, 2, 96, 160, true );
+                      // console.log( pixelStream );
                       
-                      /*let receiptAsQrCodeStream = */
-                      pixels2Stream( pixels, 2, 96, 160, true );
-                      pixels2Framebuffer( pixels );
+                      var x = 0;
+                      var y = 0;
+                      var pixel = 32;
+                      for( let c of pixelStream )
+                      {
+                          if( c == '\n' )
+                          {
+                              // console.log( y );
+                              y++;
+                              x = 0;
+                              pixel = 32;
+                              continue;
+                          }
+
+                          if( c == 'b' && pixel != 32 )
+                          {
+                              // console.log( 'found black @ ' + x + ', ' + y );
+                              data[ y ][ x ] = data[ y ][ x ] | (1 << (pixel-1));
+                          }
+                          
+                          pixel--;
+                          if( pixel == 0 )
+                          {
+                              x++;
+                              pixel = 32;
+                          }
+                      }
                       
-                      OFS_getReceiptAsHTML
-                      ( configuration.OFS
-                      , uuid
-                      , ( html : any ) =>
-                        {
-                            var renderStream = WEBSHOT
-                            ( html
-                            , { siteType: 'html'
-                              , screenSize:
-                                { width: 322
-                                }
-                              , quality: 100
-                              }
-                            );
+                      // var dbg = '';
+                      // for( var y = 0; y < 104; y++ )
+                      // {
+                      //     for( var x = 0; x < 4; x++ )
+                      //     {
+                      //         let num = data[ y ][ x ];
+                      //         dbg +=  sprintf( "%32s ", dec2Bin( num ) );
+                      //     }
+                      //     dbg += '\n';
+                      // }
+                      // console.log( dbg );
+                      
+                      let receiptObject : any =
+                          { sync: receipt.stamp
+                          , uuid: receipt.uuid
+                          };
 
-                            let fileName = 'obj/beleg.png';
-                            var file = FS.createWriteStream( fileName, { encoding: 'binary' } );
-                            
-                            renderStream.on
-                            ( 'data'
-                            , ( data : any ) =>
-                              {
-                                  file.write( data.toString( 'binary' ), 'binary' );
-                              }
-                            );
-                            
-                            renderStream.on
-                            ( 'end'
-                            , () =>
-                              {
-                                  JIMP.read
-                                  ( fileName
-                                  , ( error : any, image : any ) =>
-                                    {
-                                        if( error )
-                                        {
-                                            OFS_error( error );
-                                            return;
-                                        }
-                                        
-                                        image.crop
-                                        ( 20, 10, image.bitmap.width - 40, image.bitmap.height - 300
-                                        ).posterize
-                                        ( 4
-                                        ).greyscale(
-                                        ).write
-                                        ( fileName + '.jimp.png'
-                                        , () =>
-                                          {
-                                              GET_PIXELS
-                                              ( fileName + '.jimp.png'
-                                              , ( error : any, pixels : any ) =>
-                                                {
-                                                    if( error )
-                                                    {
-                                                        OFS_error( 'png2pixels: ' + error );
-                                                        return;
-                                                    }
-                                              
-                                                    //let receiptAsImageStream =
-                                                    // pixels2Stream( pixels, 1, 64, 128 );
-                                                    // console.log( receiptAsImageStream );
-                                                    // pixels2Framebuffer( pixels, 0, 60 );
+                      var index = 0;
+                      for( var y = 0; y < 104; y++ )
+                      {
+                          for( var x = 0; x < 4; x++ )
+                          {
+                              let num = data[ y ][ x ];
+                              receiptObject[ 'data' + index ] = num;
+                              index++;
+                          }
+                      }
+                      for( ; index <= 983; index++ )
+                      {
+                          receiptObject[ 'data' + index ] = 0;
+                      }
 
-                                                    //framebufferDump();
-                                                    var fb2s = framebuffer2Stream();
-                                                    
-                                                    let receiptObject =
-                                                    { sync: receipt.stamp
-                                                    , uuid: receipt.uuid
-                                                    , data0 : fb2s[0]
-                                                    , data1 : fb2s[1]
-                                                    , data2 : fb2s[2]
-                                                    , data3 : fb2s[3]
-                                                    , data4 : fb2s[4]
-                                                    , data5 : fb2s[5]
-                                                    , data6 : fb2s[6]
-                                                    , data7 : fb2s[7]
-                                                    , data8 : fb2s[8]
-                                                    , data9 : fb2s[9]
-                                                    , data10 : fb2s[10]
-                                                    , data11 : fb2s[11]
-                                                    , data12 : fb2s[12]
-                                                    , data13 : fb2s[13]
-                                                    , data14 : fb2s[14]
-                                                    , data15 : fb2s[15]
-                                                    , data16 : fb2s[16]
-                                                    , data17 : fb2s[17]
-                                                    , data18 : fb2s[18]
-                                                    , data19 : fb2s[19]
-                                                    , data20 : fb2s[20]
-                                                    , data21 : fb2s[21]
-                                                    , data22 : fb2s[22]
-                                                    , data23 : fb2s[23]
-                                                    , data24 : fb2s[24]
-                                                    , data25 : fb2s[25]
-                                                    , data26 : fb2s[26]
-                                                    , data27 : fb2s[27]
-                                                    , data28 : fb2s[28]
-                                                    , data29 : fb2s[29]
-                                                    , data30 : fb2s[30]
-                                                    , data31 : fb2s[31]
-                                                    , data32 : fb2s[32]
-                                                    , data33 : fb2s[33]
-                                                    , data34 : fb2s[34]
-                                                    , data35 : fb2s[35]
-                                                    , data36 : fb2s[36]
-                                                    , data37 : fb2s[37]
-                                                    , data38 : fb2s[38]
-                                                    , data39 : fb2s[39]
-                                                    , data40 : fb2s[40]
-                                                    , data41 : fb2s[41]
-                                                    , data42 : fb2s[42]
-                                                    , data43 : fb2s[43]
-                                                    , data44 : fb2s[44]
-                                                    , data45 : fb2s[45]
-                                                    , data46 : fb2s[46]
-                                                    , data47 : fb2s[47]
-                                                    , data48 : fb2s[48]
-                                                    , data49 : fb2s[49]
-                                                    , data50 : fb2s[50]
-                                                    , data51 : fb2s[51]
-                                                    , data52 : fb2s[52]
-                                                    , data53 : fb2s[53]
-                                                    , data54 : fb2s[54]
-                                                    , data55 : fb2s[55]
-                                                    , data56 : fb2s[56]
-                                                    , data57 : fb2s[57]
-                                                    , data58 : fb2s[58]
-                                                    , data59 : fb2s[59]
-                                                    };
-                                                    
-                                                    IOT_setConfig
-                                                    ( configuration.IOT
-                                                    , 2
-                                                    , receiptObject
-                                                    , ( data : any ) =>
-                                                      {
-                                                          IOT_getConfig
-                                                          ( configuration.IOT
-                                                          , 2
-                                                          );
-
-                                                          currentReceipt = receiptObject;
-                                                          processDelay();
-                                                      }
-                                                      , IOT_error
-                                                    );
-                                                }
-                                              );
-                                          }
-                                        );
-                                    }
-                                  );
-                              }
-                            );
-                        }
-                      , OFS_error
+                      IOT_setConfig
+                      ( configuration.IOT
+                      , 2
+                      , receiptObject
+                      , ( data : any ) =>
+                        {                                
+                            currentReceipt = receiptObject;
+                            processDelay();
+                            }
+                      , IOT_error
                       );
                   }
                 );
@@ -638,110 +599,7 @@ function processReceipt( receipt : any )
           );
       }
       , OFS_error
-      , receipt.url
-      , receipt.api
     );
-}
-
-function pixels2Framebuffer
-( pixels : any
-, posX : number = 0
-, posY : number = 0
-, bg : number = 70
-, gw : number = 140
-)
-{
-    for( var x = 0; x < pixels.shape[0]; x += 1 )
-    {
-        for( var y = 0; y < pixels.shape[1]; y += 1 )
-        {
-            let pixel = ( pixels.get( y, x, 0 ) + pixels.get( y, x, 1 ) + pixels.get( y, x, 2 ) + pixels.get( y, x, 3 ) ) / 4;
-            var framebufferPixel = '';
-            
-            if( pixel > gw )
-            {
-                framebufferPixel = 'w';
-            }
-            else if( pixel >= bg && pixel < gw )
-            {
-                framebufferPixel = 'g';
-            }
-            else
-            {
-                framebufferPixel = 'b';
-            }
-
-            if( ((posY + x) < 384) && ((posX + y) < 640) )
-            {
-                framebuffer[ posY + x ][ posX + y ] = framebufferPixel;
-            }
-        }
-    }
-}
-
-function framebuffer2Stream
-(
-)
-: string[]
-{
-    var pixelStream = [];
-    for( var y = 0; y < 384; y++ )
-    {
-        pixelStream[ y ] = '';
-        for( var x = 0; x < 640; x++ )
-        {
-            pixelStream[ y ] += framebuffer[ y ][ x ];
-        }
-    }
-    return pixelStream;
-}
-
-function framebufferClear
-(
-)
-{
-    framebuffer = [];
-    for( var y = 0; y < 384; y++ )
-    {
-        framebuffer[ y ] = [];
-        for( var x = 0; x < 640; x++ )
-        {
-            framebuffer[ y ][ x ] = ' ';
-        }
-    }
-}
-
-function framebufferDump
-(
-)
-{
-    var fb2dbg = '';
-    for( var y = 0; y < 384; y++ )
-    {
-        for( var x = 0; x < 640; x++ )
-        {
-            let fbp = framebuffer[ y ][ x ];
-            if( fbp == 'w' )
-            {
-                fb2dbg += '\u001b[37;1m\u2588\u2588\u001b[0m'; // white as white
-            }
-            else if( fbp == 'g' )
-            {
-                fb2dbg += '\u001b[36;1m\u2588\u2588\u001b[0m'; // gray as cyan
-            }
-            else if( fbp == 'b' )
-            {
-                fb2dbg += '\u001b[34;1m\u2588\u2588\u001b[0m'; // blue as black
-            }
-            else
-            {
-                fb2dbg += '\u001b[34;1m\u2588\u2588\u001b[0m'; // none as yellow
-            }
-        }
-        fb2dbg += '\n';
-    }
-    
-    console.log( fb2dbg );
 }
 
 function pixels2Stream
@@ -814,34 +672,106 @@ function pixels2Stream
     }
 
     return pixelStream;
-
-    // var pixelStreamCompressed = '' + pixelStreamWidth + 'x';
-    // var pixelPrevious = '';
-    // var pixelCounter = 0;
-    // for( let c of pixelStream )
-    // {
-    //     if( c == '\n' )
-    //     {
-    //         continue;
-    //     }
-    //     if( c != pixelPrevious )
-    //     {
-    //         if( pixelCounter > 0 )
-    //         {
-    //             pixelStreamCompressed += pixelCounter;
-    //             pixelStreamCompressed += pixelPrevious;
-    //         }
-    //         pixelCounter = 1;
-    //         pixelPrevious = c;
-    //         continue;
-    //     }
-    //     pixelCounter++;
-    // }
-    
-    // return pixelStreamCompressed;
 }
 
-processInput();
+
+var syncAuth : any = null;
+var syncReceipt : any = null;
+
+function syncInput
+(
+)
+{
+    if( syncAuth == null )
+    {
+        OFS_getAuth
+        ( configuration.OFS
+        , ( data : any ) =>
+          {
+              syncAuth = data;
+              syncInput();
+          }
+        , OFS_error
+        );
+        return;
+    }
+
+    if( syncReceipt == null )
+    {
+        OFS_getLatestReceipt
+        ( configuration.OFS
+        , syncAuth.accessToken
+        , syncAuth.registrierkasseUuid
+        , ( data : any ) =>
+          {
+              syncReceipt = data.Belege[0];
+              syncInput();
+          }
+        , OFS_error
+        );
+        return;
+    }
+
+    OFS_getReceipts
+    ( configuration.OFS
+    , syncAuth.accessToken
+    , syncAuth.registrierkasseUuid
+    , syncReceipt
+    , ( data : any ) =>
+      {
+          if( data.Belege.length > 0 )
+          {
+              syncReceipt = data.Belege[0];
+
+              let receiptObject =
+                  { uuid: syncReceipt._uuid
+                  , url: configuration.OFS.url
+                  , api: configuration.OFS.api
+                  };
+              
+              IOT_setConfig
+              ( configuration.IOT
+              , 1
+              , receiptObject
+              , ( data : any ) =>
+              {
+                  processInput();
+                  setTimeout( syncInput, args.delay );
+              }
+              , IOT_error
+              );
+          }
+          else
+          {
+              setTimeout( syncInput, args.delay );
+          }
+      }
+    , OFS_error
+    );
+}
+
+// function dec2Bin
+// ( dec : number
+// )
+// {
+//     if( dec >= 0 )
+//     {
+//         return dec.toString( 2 );
+//     }
+//     else
+//     {
+//         return ( ~dec ).toString( 2 );
+//     }
+// }
+
+if( args[ 'synchronized' ] )
+{
+    syncInput();
+}
+else
+{
+    processInput();
+}
 
 //
 //  Local variables:

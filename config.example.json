@@ -1,0 +1,13 @@
+{ "IOT":
+  { "server":       "https://iot.drei.at/api/1"
+  , "username":     "<USERNAME>"
+  , "password":     "<PASSWORD>"
+  , "customerId":   "<CUSTOMER_ID>"
+  , "deviceSiteId": "<DEVICE_SITE_ID>"
+  }
+, "OFS":
+  { "server":       "https://demo.obono.at/api/v1"
+  , "username":     "<USERNAME>"
+  , "password":     "<PASSWORD>"
+  }
+}
